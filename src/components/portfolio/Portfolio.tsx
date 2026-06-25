@@ -197,12 +197,11 @@ function Hero() {
         if (dist < CURSOR_RADIUS) {
           const nx = dx / dist;
           const ny = dy / dist;
-          // Target: bubble center sits at exactly CURSOR_RADIUS from cursor.
-          // Required displacement from current rendered position:
-          const need = CURSOR_RADIUS - dist;
-          // Convert to displacement from rest, accounting for current offset.
-          pushX += nx * need + (currentX - b.restX);
-          pushY += ny * need + (currentY - b.restY);
+          // Place bubble exactly at the edge of the cursor field.
+          const targetRenderX = mx + nx * CURSOR_RADIUS;
+          const targetRenderY = my + ny * CURSOR_RADIUS;
+          pushX += targetRenderX - b.restX;
+          pushY += targetRenderY - b.restY;
         }
       }
 
