@@ -100,14 +100,16 @@ function MagneticBubble({
     };
   };
 
+  const springConfig = { stiffness: 55, damping: 12, mass: 1.6 };
+
   const x = useSpring(
     useTransform<number, number>([mouseX, mouseY, active, width, height], (latest) => repel(latest).x),
-    { stiffness: 200, damping: 18 }
+    springConfig
   );
 
   const y = useSpring(
     useTransform<number, number>([mouseX, mouseY, active, width, height], (latest) => repel(latest).y),
-    { stiffness: 200, damping: 18 }
+    springConfig
   );
 
   return (
