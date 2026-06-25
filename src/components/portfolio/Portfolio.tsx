@@ -1,4 +1,4 @@
-import { motion, useMotionValue, useAnimationFrame, useReducedMotion, type MotionValue } from "framer-motion";
+import { motion, useMotionValue, useAnimationFrame, useReducedMotion, useMotionTemplate, type MotionValue } from "framer-motion";
 import {
   Mail, Phone, MapPin, ArrowRight, Github, Linkedin, ExternalLink,
   Sparkles, Gauge, Wrench, Smartphone, Search, FormInput, ShieldCheck,
@@ -97,6 +97,7 @@ function MagneticBubble({
 
   const x = useMotionValue(0);
   const y = useMotionValue(0);
+  const transform = useMotionTemplate`translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
 
   useEffect(() => {
     const entry: BubbleEntry = {
@@ -122,7 +123,7 @@ function MagneticBubble({
       style={{
         left: `${leftPct}%`,
         top: `${topPct}%`,
-        transform: `translate(calc(-50% + ${x.get()}px), calc(-50% + ${y.get()}px))`,
+        transform,
       }}
     >
       <motion.div
