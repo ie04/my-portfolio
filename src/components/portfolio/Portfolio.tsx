@@ -91,16 +91,16 @@ function MagneticBubble({
     const dx = cx - mx;
     const dy = cy - my;
     const dist = Math.hypot(dx, dy) || 1;
-    const radius = Math.min(w, h) * 0.3;
+    const radius = Math.min(w, h) * 0.28;
     if (dist >= radius) return { x: 0, y: 0 };
-    const force = (1 - dist / radius) * radius * 0.45;
+    const force = (1 - dist / radius) * radius * 0.65;
     return {
       x: (dx / dist) * force,
       y: (dy / dist) * force,
     };
   };
 
-  const springConfig = { stiffness: 55, damping: 12, mass: 1.6 };
+  const springConfig = { stiffness: 100, damping: 28, mass: 1.2 };
 
   const x = useSpring(
     useTransform<number, number>([mouseX, mouseY, active, width, height], (latest) => repel(latest).x),
