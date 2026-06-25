@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { Lock, Globe, Star, GitFork, ArrowUpRight, Github } from "lucide-react";
 import { useMemo, useState, Suspense } from "react";
 import { githubQueryOptions } from "@/lib/github-query";
-import type { Repo, TechChip } from "@/lib/github.functions";
+import type { Repo, TechChip, GitHubData } from "@/lib/github.functions";
 
 function timeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
@@ -67,7 +67,7 @@ function TechChipPill({ chip }: { chip: TechChip }) {
   );
 }
 
-function GitHubSummary({ data }: { data: ReturnType<typeof useSuspenseQuery<typeof githubQueryOptions>>["data"] }) {
+function GitHubSummary({ data }: { data: GitHubData }) {
   const s = data.summary;
   return (
     <motion.div
