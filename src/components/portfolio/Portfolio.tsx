@@ -83,24 +83,37 @@ function MagneticBubble({
 }) {
   const { mouseX, mouseY, active, width, height } = useMouseContext();
 
+  // Hard exclusion zone: the bubble can never enter this radius around the cursor.
+  const safeRadius = 110;
+  // Soft outer zone: gentle drift beyond the exclusion edge.
+  const outerRadius = 220;
+
   const repel = (latest: number[]) => {
     const [mx, my, a, w, h] = latest;
     if (!a) return { x: 0, y: 0 };
-    const cx = (leftPct / 100) * w;
-    const cy = (topPct / 100) * h;
-    const dx = cx - mx;
-    const dy = cy - my;
-    const dist = Math.hypot(dx, dy) || 1;
-    const radius = Math.min(w, h) * 0.28;
-    if (dist >= radius) return { x: 0, y: 0 };
-    const force = (1 - dist / radius) * radius * 0.65;
+    const restX = (leftPct / 100) * w;
+    const restY = (topPct / 100) * h;
+    const dx = restX - mx;
+    const dy = restY - my;
+    const dist = Math.hypot(dx, dy) || 0.0001;
+    if (dist >= outerRadius) return { x: 0, y: 0 };
+    const nx = dx / dist;
+    const ny = dy / dist;
+    // Target distance from cursor: at least safeRadius, easing back to dist by outerRadius.
+    let targetDist: number;
+    if (dist < safeRadius) {
+      targetDist = safeRadius;
+    } else {
+      const t = (dist - safeRadius) / (outerRadius - safeRadius);
+      targetDist = safeRadius + (dist - safeRadius) * (t * t * (3 - 2 * t));
+    }
     return {
-      x: (dx / dist) * force,
-      y: (dy / dist) * force,
+      x: mx + nx * targetDist - restX,
+      y: my + ny * targetDist - restY,
     };
   };
 
-  const springConfig = { stiffness: 100, damping: 28, mass: 1.2 };
+  const springConfig = { stiffness: 700, damping: 40, mass: 0.6 };
 
   const x = useSpring(
     useTransform<number, number>([mouseX, mouseY, active, width, height], (latest) => repel(latest).x),
