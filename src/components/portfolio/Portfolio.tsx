@@ -146,10 +146,10 @@ function Hero() {
             className="absolute inset-3 rounded-full object-cover ring-1 ring-border"
           />
           {[
-            { label: "TypeScript", x: "-12%", y: "10%" },
+            { label: "Python", x: "-12%", y: "10%" },
             { label: "AWS", x: "100%", y: "20%" },
-            { label: "React", x: "-18%", y: "70%" },
-            { label: "SQL", x: "95%", y: "75%" },
+            { label: "Java", x: "-18%", y: "70%" },
+            { label: "Linux", x: "95%", y: "75%" },
           ].map((c, i) => (
             <motion.span
               key={c.label}
