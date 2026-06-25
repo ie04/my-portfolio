@@ -76,6 +76,8 @@ function useMouseContext() {
   return ctx;
 }
 
+const ICON_FIELD_RADIUS = 220;
+
 function MagneticBubble({
   label,
   leftPct,
@@ -151,16 +153,35 @@ function Hero() {
     return () => window.removeEventListener("resize", update);
   }, []);
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = containerRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    sizeRef.current = { w: rect.width, h: rect.height };
-    mouseX.set(e.clientX - rect.left);
-    mouseY.set(e.clientY - rect.top);
-    active.set(1);
-  };
+  useEffect(() => {
+    const handlePointerMove = (e: PointerEvent) => {
+      const rect = containerRef.current?.getBoundingClientRect();
+      if (!rect) return;
 
-  const handleMouseLeave = () => active.set(0);
+      sizeRef.current = { w: rect.width, h: rect.height };
+      const localX = e.clientX - rect.left;
+      const localY = e.clientY - rect.top;
+      mouseX.set(localX);
+      mouseY.set(localY);
+
+      const withinField =
+        localX >= -ICON_FIELD_RADIUS &&
+        localX <= rect.width + ICON_FIELD_RADIUS &&
+        localY >= -ICON_FIELD_RADIUS &&
+        localY <= rect.height + ICON_FIELD_RADIUS;
+
+      active.set(withinField ? 1 : 0);
+    };
+
+    const handlePointerLeave = () => active.set(0);
+
+    window.addEventListener("pointermove", handlePointerMove, { passive: true });
+    window.addEventListener("pointerleave", handlePointerLeave);
+    return () => {
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerleave", handlePointerLeave);
+    };
+  }, [active, mouseX, mouseY]);
 
   // Displacement-field loop: the cursor bends each icon away from its resting
   // point with continuous easing. No spring solver, so motion stays fluid.
@@ -184,7 +205,7 @@ function Hero() {
     const { w, h } = sizeRef.current;
     const dt = Math.min(typeof delta === "number" ? delta : 16, 32) / 1000;
 
-    const FIELD_RADIUS = 215;
+    const FIELD_RADIUS = ICON_FIELD_RADIUS;
     const CORE_RADIUS = 86;
     const MAX_SHIFT = 138;
     const CORE_SHIFT = 52;
@@ -353,8 +374,6 @@ function Hero() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8, delay: 0.2 }}
           className="relative mx-auto aspect-square w-72 md:w-80"
-          onMouseMove={handleMouseMove}
-          onMouseLeave={handleMouseLeave}
         >
           <MouseContext.Provider value={ctxValue}>
             <motion.div
