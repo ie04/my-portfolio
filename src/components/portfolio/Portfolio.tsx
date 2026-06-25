@@ -185,10 +185,10 @@ function SectionHeading({ kicker, title, sub }: { kicker: string; title: string;
 
 function About() {
   const stats = [
-    { v: "3+", l: "Industry certifications" },
-    { v: "4", l: "Languages spoken" },
+    { v: "9", l: "Industry certifications" },
+    { v: "AWS + CompTIA", l: "Cloud & IT stack" },
     { v: "PageFoundry", l: "Web studio I run" },
-    { v: "Tampa, FL", l: "Based at USF" },
+    { v: "Tampa, FL", l: "Home base" },
   ];
   return (
     <section id="about" className="py-24 md:py-32">
@@ -197,15 +197,18 @@ function About() {
         <div className="grid gap-10 lg:grid-cols-[1.4fr_1fr]">
           <div className="glass rounded-2xl p-7 text-[15px] leading-relaxed text-muted-foreground">
             <p>
-              I'm a Cloud Computing & Information Technology student at the University of South Florida,
-              with hands-on experience as an IT Specialist supporting K-12 schools and as the founder of{" "}
-              <span className="text-foreground font-medium">PageFoundry</span> — a web studio focused on
-              giving small businesses sites that look modern, load fast, and earn trust at first glance.
+              I'm a dedicated IT professional pursuing a B.S. in Cloud Computing at{" "}
+              <span className="text-foreground font-medium">Western Governors University</span>,
+              with an A.A. in Computer Engineering from{" "}
+              <span className="text-foreground font-medium">Hillsborough Community College</span>{" "}
+              and an IB Diploma from C. Leon King High School. My background spans technical support,
+              database maintenance, and systems auditing, and I'm proficient in Python, Java, and Linux environments.
             </p>
             <p className="mt-4">
-              My background sits between IT operations, cloud infrastructure, and full-stack web. That mix
-              is what most freelancers don't have — I can design the site, set up the cloud hosting,
-              wire up analytics, and keep it running long after launch.
+              On top of that I run <span className="text-foreground font-medium">PageFoundry</span> —
+              a web studio focused on giving small businesses sites that look modern, load fast, and earn trust at first glance.
+              I hold the AWS Certified Cloud Practitioner and the CompTIA trifecta (A+, Network+, Security+),
+              plus Cloud+, Project+, ITIL, and LPI Linux Essentials.
             </p>
           </div>
           <div className="grid grid-cols-2 gap-3">
