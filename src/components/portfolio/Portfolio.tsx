@@ -146,21 +146,38 @@ function Hero() {
             className="absolute inset-3 rounded-full object-cover ring-1 ring-border"
           />
           {[
-            { label: "Python", x: "-12%", y: "10%" },
-            { label: "AWS", x: "100%", y: "20%" },
-            { label: "Java", x: "-18%", y: "70%" },
-            { label: "Linux", x: "95%", y: "75%" },
-          ].map((c, i) => (
-            <motion.span
-              key={c.label}
-              className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full border border-border bg-card/80 px-2.5 py-1 text-[11px] backdrop-blur"
-              style={{ left: c.x, top: c.y }}
-              animate={{ y: [0, -6, 0] }}
-              transition={{ duration: 4 + i, repeat: Infinity, ease: "easeInOut", delay: i * 0.4 }}
-            >
-              {c.label}
-            </motion.span>
-          ))}
+            { label: "React", slug: "react", color: "61DAFB" },
+            { label: "TypeScript", slug: "typescript", color: "3178C6" },
+            { label: "Node.js", slug: "nodedotjs", color: "5FA04E" },
+            { label: "Python", slug: "python", color: "3776AB" },
+            { label: "PostgreSQL", slug: "postgresql", color: "4169E1" },
+            { label: "AWS", slug: "amazonwebservices", color: "FFFFFF" },
+            { label: "Docker", slug: "docker", color: "2496ED" },
+            { label: "Linux", slug: "linux", color: "FFFFFF" },
+          ].map((c, i, arr) => {
+            const angle = (i / arr.length) * Math.PI * 2 - Math.PI / 2;
+            const radius = 56; // % from center
+            const x = 50 + Math.cos(angle) * radius;
+            const y = 50 + Math.sin(angle) * radius;
+            return (
+              <motion.div
+                key={c.label}
+                title={c.label}
+                aria-label={c.label}
+                className="absolute flex size-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-card/80 shadow-lg backdrop-blur md:size-14"
+                style={{ left: `${x}%`, top: `${y}%` }}
+                animate={{ y: [0, -6, 0] }}
+                transition={{ duration: 4 + (i % 3), repeat: Infinity, ease: "easeInOut", delay: i * 0.25 }}
+              >
+                <img
+                  src={`https://cdn.simpleicons.org/${c.slug}/${c.color}`}
+                  alt={c.label}
+                  loading="lazy"
+                  className="size-6 md:size-7"
+                />
+              </motion.div>
+            );
+          })}
         </motion.div>
       </div>
     </section>
