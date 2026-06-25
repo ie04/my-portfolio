@@ -1,10 +1,16 @@
-<!-- LOVABLE:BEGIN -->
-> [!IMPORTANT]
-> This project is connected to [Lovable](https://lovable.dev). Avoid rewriting
-> published git history — force pushing, or rebasing/amending/squashing commits
-> that are already pushed — as it rewrites history on Lovable's side and the
-> user will likely lose their project history.
->
-> Commits you push to the connected branch sync back to Lovable and show up in
-> the editor, so keep the branch in a working state.
-<!-- LOVABLE:END -->
+# Project Instructions
+
+This is a Next.js + React portfolio site.
+
+## Development
+
+- Use `npm run dev` for local development.
+- Use `npm run build` to verify production builds.
+- Keep visual design, layout, and portfolio content stable unless the requested change explicitly asks for UI or copy changes.
+- Preserve the existing Tailwind utility and component patterns when editing UI.
+- Keep server-only data access inside Next route handlers or server modules.
+
+## Git
+
+- Do not rewrite published history unless explicitly requested.
+- Keep commits focused and leave unrelated work untouched.

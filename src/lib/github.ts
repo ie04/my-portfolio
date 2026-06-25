@@ -1,5 +1,3 @@
-import { createServerFn } from "@tanstack/react-start";
-
 export type Repo = {
   id: number;
   name: string;
@@ -31,7 +29,7 @@ export type GitHubProfile = {
 
 export type TechChip = {
   label: string;
-  weight: number; // 1..5
+  weight: number;
   source: "language" | "topic" | "baseline";
   count: number;
 };
@@ -56,7 +54,36 @@ export type GitHubData = {
   };
 };
 
-// Canonical capitalization for tech labels.
+type GitHubProfileResponse = {
+  login: string;
+  name: string | null;
+  avatar_url: string;
+  html_url: string;
+  bio: string | null;
+  followers: number;
+  following: number;
+  public_repos: number;
+  location: string | null;
+};
+
+type GitHubRepoResponse = {
+  id: number;
+  name: string;
+  full_name: string;
+  description: string | null;
+  html_url: string;
+  private: boolean;
+  fork: boolean;
+  language: string | null;
+  stargazers_count: number;
+  forks_count: number;
+  updated_at: string;
+  pushed_at: string;
+  topics?: string[];
+  homepage: string | null;
+  archived: boolean;
+};
+
 const TECH_LABEL: Record<string, string> = {
   typescript: "TypeScript",
   javascript: "JavaScript",
@@ -87,7 +114,6 @@ const TECH_LABEL: Record<string, string> = {
   git: "Git",
   html: "HTML",
   css: "CSS",
-  vite: "Vite",
   supabase: "Supabase",
   java: "Java",
   c: "C",
@@ -117,8 +143,6 @@ const TECH_LABEL: Record<string, string> = {
   cloudflare: "Cloudflare",
 };
 
-// Always show these so business visitors register the buzzwords even if a
-// language isn't surfaced in repos (coursework / pre-GitHub work).
 const BASELINE: string[] = [
   "TypeScript",
   "JavaScript",
@@ -161,7 +185,6 @@ function buildSummary(profile: GitHubProfile, repos: Repo[]): GitHubData["summar
   const privateRepos = repos.filter((r) => r.isPrivate).length;
   const stars = repos.reduce((sum, r) => sum + r.stars, 0);
 
-  // Languages from repo.language
   const langCounts = new Map<string, number>();
   for (const r of repos) {
     if (r.language) {
@@ -173,7 +196,6 @@ function buildSummary(profile: GitHubProfile, repos: Repo[]): GitHubData["summar
     .map(([name, count]) => ({ name, count }))
     .sort((a, b) => b.count - a.count);
 
-  // Topic counts
   const topicCounts = new Map<string, number>();
   for (const r of repos) {
     for (const t of r.topics) {
@@ -182,7 +204,6 @@ function buildSummary(profile: GitHubProfile, repos: Repo[]): GitHubData["summar
     }
   }
 
-  // Build chips: languages + topics, merged
   const chipMap = new Map<string, TechChip>();
   for (const [name, count] of langCounts) {
     chipMap.set(name, { label: name, count, weight: 0, source: "language" });
@@ -192,14 +213,12 @@ function buildSummary(profile: GitHubProfile, repos: Repo[]): GitHubData["summar
     if (existing) existing.count += count;
     else chipMap.set(name, { label: name, count, weight: 0, source: "topic" });
   }
-  // Baseline fillers
   for (const name of BASELINE) {
     if (!chipMap.has(name)) {
       chipMap.set(name, { label: name, count: 0, weight: 1, source: "baseline" });
     }
   }
 
-  // Weight chips 1..5 by count percentile
   const counts = [...chipMap.values()].map((c) => c.count);
   const maxCount = Math.max(1, ...counts);
   for (const chip of chipMap.values()) {
@@ -223,7 +242,6 @@ function buildSummary(profile: GitHubProfile, repos: Repo[]): GitHubData["summar
     ? { repo: sortedByPush[0].name, at: sortedByPush[0].pushedAt }
     : null;
 
-  // Narrative
   const webStack = ["TypeScript", "React", "Node.js"].filter((t) => chipMap.has(t));
   const dataStack = ["Python", "SQL"].filter((t) => chipMap.has(t));
   const cloudStack = ["AWS", "Linux", "Docker"].filter((t) => chipMap.has(t));
@@ -253,7 +271,6 @@ function buildSummary(profile: GitHubProfile, repos: Repo[]): GitHubData["summar
 }
 
 function emptyData(reason: string): GitHubData {
-  // Build a baseline-only summary so the buzzwords still render.
   const profile: GitHubProfile = {
     login: "ie04",
     name: "Iyad Eltifi",
@@ -269,58 +286,55 @@ function emptyData(reason: string): GitHubData {
   return { available: false, reason, profile: null, repos: [], summary };
 }
 
-export const getGitHubData = createServerFn({ method: "GET" }).handler(
-  async (): Promise<GitHubData> => {
-    if (cache && Date.now() - cache.at < CACHE_MS) return cache.data;
-    const token = process.env.GITHUB_TOKEN;
-    if (!token) {
-      const data = emptyData("GITHUB_TOKEN not configured");
-      return data;
-    }
-    try {
-      const [profileRaw, reposRaw] = await Promise.all([
-        gh<any>("https://api.github.com/user", token),
-        gh<any[]>(
-          "https://api.github.com/user/repos?affiliation=owner&visibility=all&sort=updated&per_page=100",
-          token,
-        ),
-      ]);
-      const profile: GitHubProfile = {
-        login: profileRaw.login,
-        name: profileRaw.name,
-        avatarUrl: profileRaw.avatar_url,
-        htmlUrl: profileRaw.html_url,
-        bio: profileRaw.bio,
-        followers: profileRaw.followers,
-        following: profileRaw.following,
-        publicRepos: profileRaw.public_repos,
-        location: profileRaw.location,
-      };
-      const repos: Repo[] = reposRaw
-        .filter((r) => !r.archived)
-        .map((r) => ({
-          id: r.id,
-          name: r.name,
-          fullName: r.full_name,
-          description: r.description,
-          htmlUrl: r.html_url,
-          isPrivate: r.private,
-          isFork: r.fork,
-          language: r.language,
-          stars: r.stargazers_count,
-          forks: r.forks_count,
-          updatedAt: r.updated_at,
-          pushedAt: r.pushed_at,
-          topics: r.topics ?? [],
-          homepage: r.homepage,
-        }));
-      const summary = buildSummary(profile, repos);
-      const data: GitHubData = { available: true, profile, repos, summary };
-      cache = { data, at: Date.now() };
-      return data;
-    } catch (err) {
-      console.error("[github] fetch failed", err);
-      return emptyData(err instanceof Error ? err.message : "fetch failed");
-    }
-  },
-);
+export async function getGitHubData(): Promise<GitHubData> {
+  if (cache && Date.now() - cache.at < CACHE_MS) return cache.data;
+  const token = process.env.GITHUB_TOKEN;
+  if (!token) {
+    return emptyData("GITHUB_TOKEN not configured");
+  }
+  try {
+    const [profileRaw, reposRaw] = await Promise.all([
+      gh<GitHubProfileResponse>("https://api.github.com/user", token),
+      gh<GitHubRepoResponse[]>(
+        "https://api.github.com/user/repos?affiliation=owner&visibility=all&sort=updated&per_page=100",
+        token,
+      ),
+    ]);
+    const profile: GitHubProfile = {
+      login: profileRaw.login,
+      name: profileRaw.name,
+      avatarUrl: profileRaw.avatar_url,
+      htmlUrl: profileRaw.html_url,
+      bio: profileRaw.bio,
+      followers: profileRaw.followers,
+      following: profileRaw.following,
+      publicRepos: profileRaw.public_repos,
+      location: profileRaw.location,
+    };
+    const repos: Repo[] = reposRaw
+      .filter((r) => !r.archived)
+      .map((r) => ({
+        id: r.id,
+        name: r.name,
+        fullName: r.full_name,
+        description: r.description,
+        htmlUrl: r.html_url,
+        isPrivate: r.private,
+        isFork: r.fork,
+        language: r.language,
+        stars: r.stargazers_count,
+        forks: r.forks_count,
+        updatedAt: r.updated_at,
+        pushedAt: r.pushed_at,
+        topics: r.topics ?? [],
+        homepage: r.homepage,
+      }));
+    const summary = buildSummary(profile, repos);
+    const data: GitHubData = { available: true, profile, repos, summary };
+    cache = { data, at: Date.now() };
+    return data;
+  } catch (err) {
+    console.error("[github] fetch failed", err);
+    return emptyData(err instanceof Error ? err.message : "fetch failed");
+  }
+}

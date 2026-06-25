@@ -1,9 +1,22 @@
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { motion } from "framer-motion";
 import { Lock, Globe, Star, GitFork, ArrowUpRight, Github } from "lucide-react";
-import { useMemo, useState, Suspense } from "react";
-import { githubQueryOptions } from "@/lib/github-query";
-import type { Repo, TechChip, GitHubData } from "@/lib/github.functions";
+import { useMemo, useState } from "react";
+import type { Repo, TechChip, GitHubData } from "@/lib/github";
+
+async function fetchGitHubData(): Promise<GitHubData> {
+  const res = await fetch("/api/github");
+  if (!res.ok) {
+    throw new Error("Failed to load GitHub data");
+  }
+  return (await res.json()) as GitHubData;
+}
+
+const githubQueryOptions = {
+  queryKey: ["github", "ie04"],
+  queryFn: fetchGitHubData,
+  staleTime: 5 * 60 * 1000,
+};
 
 function timeAgo(iso: string): string {
   const diff = Date.now() - new Date(iso).getTime();
@@ -48,13 +61,21 @@ function StatTile({ label, value }: { label: string; value: string | number }) {
 }
 
 function TechChipPill({ chip }: { chip: TechChip }) {
-  const sizes = ["text-xs px-2.5 py-1", "text-xs px-3 py-1", "text-sm px-3 py-1.5", "text-sm px-3.5 py-1.5", "text-base px-4 py-2"];
+  const sizes = [
+    "text-xs px-2.5 py-1",
+    "text-xs px-3 py-1",
+    "text-sm px-3 py-1.5",
+    "text-sm px-3.5 py-1.5",
+    "text-base px-4 py-2",
+  ];
   const intensities = ["opacity-60", "opacity-75", "opacity-90", "opacity-100", "opacity-100"];
   const w = Math.max(1, Math.min(5, chip.weight));
   const baseline = chip.source === "baseline" && chip.count === 0;
   return (
     <span
-      title={baseline ? "From coursework & projects" : `${chip.count} repo${chip.count === 1 ? "" : "s"}`}
+      title={
+        baseline ? "From coursework & projects" : `${chip.count} repo${chip.count === 1 ? "" : "s"}`
+      }
       className={`inline-flex items-center gap-1.5 rounded-full border ${sizes[w - 1]} ${intensities[w - 1]} ${
         baseline
           ? "border-border bg-muted/40 text-muted-foreground"
@@ -86,7 +107,10 @@ function GitHubSummary({ data }: { data: GitHubData }) {
           <h3 className="mt-3 text-2xl md:text-3xl font-semibold">
             {s.totalRepos} repositor{s.totalRepos === 1 ? "y" : "ies"} shipped across{" "}
             <span className="text-gradient">{Math.max(s.languageCount, 1)} languages</span>
-            <span className="text-muted-foreground"> — building with the tools modern teams hire for.</span>
+            <span className="text-muted-foreground">
+              {" "}
+              — building with the tools modern teams hire for.
+            </span>
           </h3>
           <p className="mt-3 max-w-2xl text-sm md:text-base text-muted-foreground">{s.narrative}</p>
         </div>
@@ -119,7 +143,8 @@ function GitHubSummary({ data }: { data: GitHubData }) {
           ))}
         </div>
         <div className="mt-3 text-xs text-muted-foreground">
-          Larger, glowing chips appear in the most repos. Muted chips come from coursework & non-GitHub projects.
+          Larger, glowing chips appear in the most repos. Muted chips come from coursework &
+          non-GitHub projects.
         </div>
       </div>
     </motion.div>
@@ -127,7 +152,7 @@ function GitHubSummary({ data }: { data: GitHubData }) {
 }
 
 function RepoCard({ repo }: { repo: Repo }) {
-  const color = repo.language ? LANG_COLOR[repo.language] ?? "#888" : "#888";
+  const color = repo.language ? (LANG_COLOR[repo.language] ?? "#888") : "#888";
   return (
     <motion.a
       href={repo.htmlUrl}
@@ -144,7 +169,9 @@ function RepoCard({ repo }: { repo: Repo }) {
           ) : (
             <Globe className="size-3.5 shrink-0 text-muted-foreground" />
           )}
-          <span className="truncate font-medium text-foreground group-hover:text-primary">{repo.name}</span>
+          <span className="truncate font-medium text-foreground group-hover:text-primary">
+            {repo.name}
+          </span>
         </div>
         <ArrowUpRight className="size-4 text-muted-foreground transition group-hover:text-primary group-hover:-translate-y-0.5 group-hover:translate-x-0.5" />
       </div>
@@ -226,7 +253,15 @@ function RepoGrid({ repos }: { repos: Repo[] }) {
 }
 
 function GitHubInner() {
-  const { data } = useSuspenseQuery(githubQueryOptions);
+  const { data, isLoading, isError } = useQuery({
+    ...githubQueryOptions,
+    enabled: typeof window !== "undefined",
+  });
+
+  if (isLoading || isError || !data) {
+    return <GitHubSkeleton />;
+  }
+
   return (
     <div className="space-y-8">
       <GitHubSummary data={data} />
@@ -236,9 +271,7 @@ function GitHubInner() {
 }
 
 function GitHubSkeleton() {
-  return (
-    <div className="glass-strong h-96 animate-pulse rounded-2xl" aria-hidden />
-  );
+  return <div className="glass-strong h-96 animate-pulse rounded-2xl" aria-hidden />;
 }
 
 export function GitHubSection() {
@@ -253,9 +286,7 @@ export function GitHubSection() {
             Private projects included.
           </p>
         </div>
-        <Suspense fallback={<GitHubSkeleton />}>
-          <GitHubInner />
-        </Suspense>
+        <GitHubInner />
       </div>
     </section>
   );
