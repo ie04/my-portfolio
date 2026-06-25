@@ -1,4 +1,4 @@
-import { motion, useMotionValue, useSpring, useAnimationFrame, type MotionValue } from "framer-motion";
+import { motion, useMotionValue, useAnimationFrame, useReducedMotion, type MotionValue } from "framer-motion";
 import {
   Mail, Phone, MapPin, ArrowRight, Github, Linkedin, ExternalLink,
   Sparkles, Gauge, Wrench, Smartphone, Search, FormInput, ShieldCheck,
@@ -54,12 +54,12 @@ function Nav() {
 }
 
 type BubbleEntry = {
-  restX: number;
-  restY: number;
-  targetX: MotionValue<number>;
-  targetY: MotionValue<number>;
-  springX: MotionValue<number>;
-  springY: MotionValue<number>;
+  leftPct: number;
+  topPct: number;
+  x: MotionValue<number>;
+  y: MotionValue<number>;
+  offsetX: number;
+  offsetY: number;
   radius: number;
 };
 
@@ -80,7 +80,6 @@ function MagneticBubble({
   label,
   leftPct,
   topPct,
-  containerSize,
   duration,
   delay,
   children,
@@ -88,49 +87,41 @@ function MagneticBubble({
   label: string;
   leftPct: number;
   topPct: number;
-  containerSize: { w: number; h: number };
   duration: number;
   delay: number;
   children: ReactNode;
 }) {
   const { bubbles } = useMouseContext();
 
-  const targetX = useMotionValue(0);
-  const targetY = useMotionValue(0);
-
-  // Snappier but still smooth — higher stiffness with proportional damping = no bounce.
-  const springConfig = { stiffness: 260, damping: 32, mass: 0.9 };
-  const springX = useSpring(targetX, springConfig);
-  const springY = useSpring(targetY, springConfig);
+  const x = useMotionValue(0);
+  const y = useMotionValue(0);
 
   useEffect(() => {
-    const restX = (leftPct / 100) * containerSize.w;
-    const restY = (topPct / 100) * containerSize.h;
     const entry: BubbleEntry = {
-      restX,
-      restY,
-      targetX,
-      targetY,
-      springX,
-      springY,
-      radius: 28, // visual bubble radius in px
+      leftPct,
+      topPct,
+      x,
+      y,
+      offsetX: 0,
+      offsetY: 0,
+      radius: 30,
     };
     bubbles.current.push(entry);
     return () => {
       bubbles.current = bubbles.current.filter((b) => b !== entry);
     };
-  }, [leftPct, topPct, containerSize.w, containerSize.h, bubbles, targetX, targetY, springX, springY]);
+  }, [leftPct, topPct, bubbles, x, y]);
 
   return (
     <motion.div
       title={label}
       aria-label={label}
-      className="absolute flex size-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center md:size-14"
-      style={{ left: `${leftPct}%`, top: `${topPct}%`, x: springX, y: springY }}
+      className="pointer-events-none absolute flex size-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center md:size-14"
+      style={{ left: `${leftPct}%`, top: `${topPct}%`, x, y }}
     >
       <motion.div
         className="flex size-full items-center justify-center rounded-full border border-border bg-card/80 shadow-lg backdrop-blur"
-        animate={{ y: [0, -6, 0] }}
+        animate={{ y: [0, -4, 0] }}
         transition={{ duration, repeat: Infinity, ease: "easeInOut", delay }}
       >
         {children}
@@ -142,6 +133,7 @@ function MagneticBubble({
 
 function Hero() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const shouldReduceMotion = useReducedMotion();
   const mouseX = useMotionValue(-9999);
   const mouseY = useMotionValue(-9999);
   const active = useMotionValue(0);
@@ -170,62 +162,110 @@ function Hero() {
 
   const handleMouseLeave = () => active.set(0);
 
-  // Physics loop: compute target positions for every bubble each frame.
-  // Cursor field starts at CURSOR_RADIUS and falls off smoothly (no hard wall).
-  // Bubbles also softly repel each other so they never overlap.
-  useAnimationFrame(() => {
+  // Displacement-field loop: the cursor bends each icon away from its resting
+  // point with continuous easing. No spring solver, so motion stays fluid.
+  useAnimationFrame((_time, delta) => {
     const list = bubbles.current;
     if (!list.length) return;
+
+    if (shouldReduceMotion) {
+      for (const b of list) {
+        b.offsetX = 0;
+        b.offsetY = 0;
+        b.x.set(0);
+        b.y.set(0);
+      }
+      return;
+    }
+
     const isActive = active.get() > 0.5;
     const mx = mouseX.get();
     const my = mouseY.get();
+    const { w, h } = sizeRef.current;
+    const dt = Math.min(typeof delta === "number" ? delta : 16, 32) / 1000;
 
-    const CURSOR_RADIUS = 150; // invisible field around the cursor
+    const FIELD_RADIUS = 215;
+    const CORE_RADIUS = 86;
+    const MAX_SHIFT = 138;
+    const CORE_SHIFT = 52;
+    const FOLLOW_SPEED = isActive ? 21 : 9;
+    const follow = 1 - Math.exp(-dt * FOLLOW_SPEED);
 
-    // Compute desired displacement for each bubble.
-    for (const b of list) {
-      let pushX = 0;
-      let pushY = 0;
+    const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
+    const smoothstep = (value: number) => {
+      const t = clamp01(value);
+      return t * t * (3 - 2 * t);
+    };
 
-      // Cursor repulsion: push bubble to the edge of the field, smoothly.
+    const desired = list.map((b) => {
+      const restX = (b.leftPct / 100) * w;
+      const restY = (b.topPct / 100) * h;
+      let dx = 0;
+      let dy = 0;
+
       if (isActive) {
-        const currentX = b.restX + b.springX.get();
-        const currentY = b.restY + b.springY.get();
-        const dx = currentX - mx;
-        const dy = currentY - my;
-        const dist = Math.hypot(dx, dy) || 0.0001;
-        if (dist < CURSOR_RADIUS) {
-          const nx = dx / dist;
-          const ny = dy / dist;
-          // Place bubble exactly at the edge of the cursor field.
-          const targetRenderX = mx + nx * CURSOR_RADIUS;
-          const targetRenderY = my + ny * CURSOR_RADIUS;
-          pushX += targetRenderX - b.restX;
-          pushY += targetRenderY - b.restY;
+        const renderedX = restX + b.offsetX;
+        const renderedY = restY + b.offsetY;
+        let awayX = renderedX - mx;
+        let awayY = renderedY - my;
+        let distance = Math.hypot(awayX, awayY);
+
+        if (distance < 0.001) {
+          const fallbackAngle = Math.atan2(restY - h / 2, restX - w / 2) || -Math.PI / 2;
+          awayX = Math.cos(fallbackAngle);
+          awayY = Math.sin(fallbackAngle);
+          distance = 0.001;
         }
+
+        const nx = awayX / distance;
+        const ny = awayY / distance;
+        const field = smoothstep((FIELD_RADIUS - distance) / FIELD_RADIUS);
+        const core = smoothstep((CORE_RADIUS - distance) / CORE_RADIUS);
+        const displacement = field * MAX_SHIFT + core * CORE_SHIFT;
+
+        dx += nx * displacement;
+        dy += ny * displacement;
       }
 
-      // Inter-bubble repulsion using current rendered positions.
-      const myX = b.restX + b.springX.get();
-      const myY = b.restY + b.springY.get();
-      const minDist = b.radius * 2 + 6;
-      for (const o of list) {
-        if (o === b) continue;
-        const ox = o.restX + o.springX.get();
-        const oy = o.restY + o.springY.get();
-        const dx = myX - ox;
-        const dy = myY - oy;
-        const dist = Math.hypot(dx, dy) || 0.0001;
-        if (dist < minDist) {
-          const overlap = (minDist - dist) / minDist;
-          const falloff = overlap * overlap;
-          pushX += (dx / dist) * 18 * falloff;
-          pushY += (dy / dist) * 18 * falloff;
+      return { b, restX, restY, dx, dy };
+    });
+
+    // Icons displace each other as part of the same field instead of colliding.
+    for (let pass = 0; pass < 3; pass += 1) {
+      for (let i = 0; i < desired.length; i += 1) {
+        for (let j = i + 1; j < desired.length; j += 1) {
+          const a = desired[i];
+          const b = desired[j];
+          let dx = a.restX + a.dx - (b.restX + b.dx);
+          let dy = a.restY + a.dy - (b.restY + b.dy);
+          let distance = Math.hypot(dx, dy);
+          const minDistance = a.b.radius + b.b.radius + 12;
+
+          if (distance < 0.001) {
+            const angle = (i / desired.length) * Math.PI * 2;
+            dx = Math.cos(angle);
+            dy = Math.sin(angle);
+            distance = 0.001;
+          }
+
+          if (distance < minDistance) {
+            const nx = dx / distance;
+            const ny = dy / distance;
+            const separation = (minDistance - distance) * 0.5;
+            a.dx += nx * separation;
+            a.dy += ny * separation;
+            b.dx -= nx * separation;
+            b.dy -= ny * separation;
+          }
         }
       }
+    }
 
-      b.targetX.set(pushX);
-      b.targetY.set(pushY);
+    for (const item of desired) {
+      item.b.offsetX += (item.dx - item.b.offsetX) * follow;
+      item.b.offsetY += (item.dy - item.b.offsetY) * follow;
+      item.b.x.set(item.b.offsetX);
+      item.b.y.set(item.b.offsetY);
     }
   });
 
@@ -352,8 +392,7 @@ function Hero() {
                   label={c.label}
                   leftPct={leftPct}
                   topPct={topPct}
-                  containerSize={sizeRef.current}
-                  duration={4 + (i % 3)}
+                    duration={7 + (i % 3)}
                   delay={i * 0.25}
                 >
                   <img
