@@ -52,7 +52,108 @@ function Nav() {
   );
 }
 
+const MouseContext = createContext<{
+  mouseX: MotionValue<number>;
+  mouseY: MotionValue<number>;
+  active: MotionValue<number>;
+  width: MotionValue<number>;
+  height: MotionValue<number>;
+} | null>(null);
+
+function useMouseContext() {
+  const ctx = useContext(MouseContext);
+  if (!ctx) throw new Error("useMouseContext must be used within a MouseContext.Provider");
+  return ctx;
+}
+
+function MagneticBubble({
+  label,
+  leftPct,
+  topPct,
+  duration,
+  delay,
+  children,
+}: {
+  label: string;
+  leftPct: number;
+  topPct: number;
+  duration: number;
+  delay: number;
+  children: ReactNode;
+}) {
+  const { mouseX, mouseY, active, width, height } = useMouseContext();
+
+  const repel = (latest: number[]) => {
+    const [mx, my, a, w, h] = latest;
+    if (!a) return { x: 0, y: 0 };
+    const cx = (leftPct / 100) * w;
+    const cy = (topPct / 100) * h;
+    const dx = cx - mx;
+    const dy = cy - my;
+    const dist = Math.hypot(dx, dy) || 1;
+    const radius = Math.min(w, h) * 0.3;
+    if (dist >= radius) return { x: 0, y: 0 };
+    const force = (1 - dist / radius) * radius * 0.45;
+    return {
+      x: (dx / dist) * force,
+      y: (dy / dist) * force,
+    };
+  };
+
+  const x = useSpring(
+    useTransform([mouseX, mouseY, active, width, height], (latest) => repel(latest).x),
+    { stiffness: 200, damping: 18 }
+  );
+
+  const y = useSpring(
+    useTransform([mouseX, mouseY, active, width, height], (latest) => repel(latest).y),
+    { stiffness: 200, damping: 18 }
+  );
+
+  return (
+    <motion.div
+      title={label}
+      aria-label={label}
+      className="absolute flex size-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center md:size-14"
+      style={{ left: `${leftPct}%`, top: `${topPct}%`, x, y }}
+    >
+      <motion.div
+        className="flex size-full items-center justify-center rounded-full border border-border bg-card/80 shadow-lg backdrop-blur"
+        animate={{ y: [0, -6, 0] }}
+        transition={{ duration, repeat: Infinity, ease: "easeInOut", delay }}
+      >
+        {children}
+      </motion.div>
+    </motion.div>
+  );
+}
+
 function Hero() {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const mouseX = useMotionValue(0);
+  const mouseY = useMotionValue(0);
+  const active = useMotionValue(0);
+  const width = useMotionValue(0);
+  const height = useMotionValue(0);
+
+  const updateSize = () => {
+    if (!containerRef.current) return;
+    const rect = containerRef.current.getBoundingClientRect();
+    width.set(rect.width);
+    height.set(rect.height);
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
+    updateSize();
+    const rect = containerRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    mouseX.set(e.clientX - rect.left);
+    mouseY.set(e.clientY - rect.top);
+    active.set(1);
+  };
+
+  const handleMouseLeave = () => active.set(0);
+
   return (
     <section id="home" className="relative overflow-hidden pt-20 pb-28 md:pt-28 md:pb-40">
       <div className="pointer-events-none absolute inset-0 grid-bg" aria-hidden />
@@ -127,59 +228,63 @@ function Hero() {
         </div>
 
         <motion.div
+          ref={containerRef}
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8, delay: 0.2 }}
           className="relative mx-auto aspect-square w-72 md:w-80"
+          onMouseMove={handleMouseMove}
+          onMouseLeave={handleMouseLeave}
         >
-          <motion.div
-            className="absolute inset-0 rounded-full"
-            style={{
-              background: "conic-gradient(from 0deg, oklch(0.72 0.17 245 / 0.6), oklch(0.78 0.13 200 / 0.4), oklch(0.65 0.21 295 / 0.6), oklch(0.72 0.17 245 / 0.6))",
-              filter: "blur(20px)",
-            }}
-            animate={{ rotate: 360 }}
-            transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
-          />
-          <div className="absolute inset-2 rounded-full bg-background" />
-          <img
-            src={iyadPhoto}
-            alt="Iyad Eltifi"
-            className="absolute inset-3 rounded-full object-cover ring-1 ring-border"
-          />
-          {[
-            { label: "React", slug: "react", color: "61DAFB" },
-            { label: "TypeScript", slug: "typescript", color: "3178C6" },
-            { label: "Node.js", slug: "nodedotjs", color: "5FA04E" },
-            { label: "Python", slug: "python", color: "3776AB" },
-            { label: "PostgreSQL", slug: "postgresql", color: "4169E1" },
-            { label: "AWS", local: awsLogo },
-            { label: "Docker", slug: "docker", color: "2496ED" },
-            { label: "Linux", slug: "linux", color: "FFFFFF" },
-          ].map((c, i, arr) => {
-            const angle = (i / arr.length) * Math.PI * 2 - Math.PI / 2;
-            const radius = 56; // % from center
-            const x = 50 + Math.cos(angle) * radius;
-            const y = 50 + Math.sin(angle) * radius;
-            return (
-              <motion.div
-                key={c.label}
-                title={c.label}
-                aria-label={c.label}
-                className="absolute flex size-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-card/80 shadow-lg backdrop-blur md:size-14"
-                style={{ left: `${x}%`, top: `${y}%` }}
-                animate={{ y: [0, -6, 0] }}
-                transition={{ duration: 4 + (i % 3), repeat: Infinity, ease: "easeInOut", delay: i * 0.25 }}
-              >
-                <img
-                  src={c.local ? c.local : `https://cdn.simpleicons.org/${c.slug}/${c.color}`}
-                  alt={c.label}
-                  loading="lazy"
-                  className="size-6 md:size-7"
-                />
-              </motion.div>
-            );
-          })}
+          <MouseContext.Provider value={{ mouseX, mouseY, active, width, height }}>
+            <motion.div
+              className="absolute inset-0 rounded-full"
+              style={{
+                background: "conic-gradient(from 0deg, oklch(0.72 0.17 245 / 0.6), oklch(0.78 0.13 200 / 0.4), oklch(0.65 0.21 295 / 0.6), oklch(0.72 0.17 245 / 0.6))",
+                filter: "blur(20px)",
+              }}
+              animate={{ rotate: 360 }}
+              transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
+            />
+            <div className="absolute inset-2 rounded-full bg-background" />
+            <img
+              src={iyadPhoto}
+              alt="Iyad Eltifi"
+              className="absolute inset-3 rounded-full object-cover ring-1 ring-border"
+            />
+            {[
+              { label: "React", slug: "react", color: "61DAFB" },
+              { label: "TypeScript", slug: "typescript", color: "3178C6" },
+              { label: "Node.js", slug: "nodedotjs", color: "5FA04E" },
+              { label: "Python", slug: "python", color: "3776AB" },
+              { label: "PostgreSQL", slug: "postgresql", color: "4169E1" },
+              { label: "AWS", local: awsLogo },
+              { label: "Docker", slug: "docker", color: "2496ED" },
+              { label: "Linux", slug: "linux", color: "FFFFFF" },
+            ].map((c, i, arr) => {
+              const angle = (i / arr.length) * Math.PI * 2 - Math.PI / 2;
+              const radius = 56; // % from center
+              const leftPct = 50 + Math.cos(angle) * radius;
+              const topPct = 50 + Math.sin(angle) * radius;
+              return (
+                <MagneticBubble
+                  key={c.label}
+                  label={c.label}
+                  leftPct={leftPct}
+                  topPct={topPct}
+                  duration={4 + (i % 3)}
+                  delay={i * 0.25}
+                >
+                  <img
+                    src={c.local ? c.local : `https://cdn.simpleicons.org/${c.slug}/${c.color}`}
+                    alt={c.label}
+                    loading="lazy"
+                    className="size-6 md:size-7"
+                  />
+                </MagneticBubble>
+              );
+            })}
+          </MouseContext.Provider>
         </motion.div>
       </div>
     </section>
