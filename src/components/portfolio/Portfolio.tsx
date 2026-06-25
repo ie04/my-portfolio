@@ -7,9 +7,9 @@ import {
 import iyadPhoto from "@/assets/iyad.jpeg";
 import { GitHubSection } from "./GitHubSection";
 
-const EMAIL = "iyadeltifi04@gmail.com";
+const EMAIL = "iyad@eltifi.com";
 const PHONE_DISPLAY = "(813) 638-6858";
-const PHONE_HREF = "tel:8136386858";
+const PHONE_HREF = "tel:+18136386858";
 const GITHUB = "https://github.com/ie04";
 const LINKEDIN = "https://www.linkedin.com/in/iyad-eltifi/";
 
