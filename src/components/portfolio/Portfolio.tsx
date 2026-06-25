@@ -98,8 +98,8 @@ function MagneticBubble({
   const targetX = useMotionValue(0);
   const targetY = useMotionValue(0);
 
-  // Soft, fluid spring — no perceptible bounce, gentle settle.
-  const springConfig = { stiffness: 90, damping: 24, mass: 1.1 };
+  // Snappier but still smooth — higher stiffness with proportional damping = no bounce.
+  const springConfig = { stiffness: 260, damping: 32, mass: 0.9 };
   const springX = useSpring(targetX, springConfig);
   const springY = useSpring(targetY, springConfig);
 
@@ -180,15 +180,14 @@ function Hero() {
     const mx = mouseX.get();
     const my = mouseY.get();
 
-    const CURSOR_RADIUS = 130; // invisible field around the cursor
-    const CURSOR_STRENGTH = 70; // max push from cursor
+    const CURSOR_RADIUS = 150; // invisible field around the cursor
 
     // Compute desired displacement for each bubble.
     for (const b of list) {
       let pushX = 0;
       let pushY = 0;
 
-      // Cursor repulsion with smoothstep falloff.
+      // Cursor repulsion: push bubble to the edge of the field, smoothly.
       if (isActive) {
         const currentX = b.restX + b.springX.get();
         const currentY = b.restY + b.springY.get();
@@ -196,10 +195,13 @@ function Hero() {
         const dy = currentY - my;
         const dist = Math.hypot(dx, dy) || 0.0001;
         if (dist < CURSOR_RADIUS) {
-          const t = 1 - dist / CURSOR_RADIUS; // 0..1
-          const falloff = t * t * (3 - 2 * t); // smoothstep
-          pushX += (dx / dist) * CURSOR_STRENGTH * falloff;
-          pushY += (dy / dist) * CURSOR_STRENGTH * falloff;
+          const nx = dx / dist;
+          const ny = dy / dist;
+          // Place bubble exactly at the edge of the cursor field.
+          const targetRenderX = mx + nx * CURSOR_RADIUS;
+          const targetRenderY = my + ny * CURSOR_RADIUS;
+          pushX += targetRenderX - b.restX;
+          pushY += targetRenderY - b.restY;
         }
       }
 
