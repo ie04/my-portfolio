@@ -105,6 +105,7 @@ function MagneticBubble({
       offsetY: 0,
       radius: 30,
     };
+    bubbleRef.current.dataset.displacementRegistered = "true";
     bubbles.current.push(entry);
     return () => {
       bubbles.current = bubbles.current.filter((b) => b !== entry);
@@ -116,6 +117,7 @@ function MagneticBubble({
       ref={bubbleRef}
       title={label}
       aria-label={label}
+      data-displace-icon={label}
       className="pointer-events-none absolute"
       style={{ left: `${leftPct}%`, top: `${topPct}%` }}
     >
@@ -280,6 +282,8 @@ function Hero() {
           for (const item of desired) {
             item.b.offsetX += (item.dx - item.b.offsetX) * follow;
             item.b.offsetY += (item.dy - item.b.offsetY) * follow;
+            item.b.element.dataset.displacementX = item.b.offsetX.toFixed(2);
+            item.b.element.dataset.displacementY = item.b.offsetY.toFixed(2);
             item.b.element.style.transform = `translate3d(${item.b.offsetX.toFixed(2)}px, ${item.b.offsetY.toFixed(2)}px, 0px)`;
           }
         }
