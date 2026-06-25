@@ -142,29 +142,95 @@ function MagneticBubble({
 
 function Hero() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
+  const mouseX = useMotionValue(-9999);
+  const mouseY = useMotionValue(-9999);
   const active = useMotionValue(0);
-  const width = useMotionValue(0);
-  const height = useMotionValue(0);
+  const bubbles = useRef<BubbleEntry[]>([]);
+  const sizeRef = useRef({ w: 320, h: 320 });
 
-  const updateSize = () => {
-    if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    width.set(rect.width);
-    height.set(rect.height);
-  };
+  useEffect(() => {
+    const update = () => {
+      if (!containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      sizeRef.current = { w: rect.width, h: rect.height };
+    };
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    updateSize();
     const rect = containerRef.current?.getBoundingClientRect();
     if (!rect) return;
+    sizeRef.current = { w: rect.width, h: rect.height };
     mouseX.set(e.clientX - rect.left);
     mouseY.set(e.clientY - rect.top);
     active.set(1);
   };
 
   const handleMouseLeave = () => active.set(0);
+
+  // Physics loop: compute target positions for every bubble each frame.
+  // Cursor field starts at CURSOR_RADIUS and falls off smoothly (no hard wall).
+  // Bubbles also softly repel each other so they never overlap.
+  useAnimationFrame(() => {
+    const list = bubbles.current;
+    if (!list.length) return;
+    const isActive = active.get() > 0.5;
+    const mx = mouseX.get();
+    const my = mouseY.get();
+
+    const CURSOR_RADIUS = 130; // invisible field around the cursor
+    const CURSOR_STRENGTH = 70; // max push from cursor
+
+    // Compute desired displacement for each bubble.
+    for (const b of list) {
+      let pushX = 0;
+      let pushY = 0;
+
+      // Cursor repulsion with smoothstep falloff.
+      if (isActive) {
+        const currentX = b.restX + b.springX.get();
+        const currentY = b.restY + b.springY.get();
+        const dx = currentX - mx;
+        const dy = currentY - my;
+        const dist = Math.hypot(dx, dy) || 0.0001;
+        if (dist < CURSOR_RADIUS) {
+          const t = 1 - dist / CURSOR_RADIUS; // 0..1
+          const falloff = t * t * (3 - 2 * t); // smoothstep
+          pushX += (dx / dist) * CURSOR_STRENGTH * falloff;
+          pushY += (dy / dist) * CURSOR_STRENGTH * falloff;
+        }
+      }
+
+      // Inter-bubble repulsion using current rendered positions.
+      const myX = b.restX + b.springX.get();
+      const myY = b.restY + b.springY.get();
+      const minDist = b.radius * 2 + 6;
+      for (const o of list) {
+        if (o === b) continue;
+        const ox = o.restX + o.springX.get();
+        const oy = o.restY + o.springY.get();
+        const dx = myX - ox;
+        const dy = myY - oy;
+        const dist = Math.hypot(dx, dy) || 0.0001;
+        if (dist < minDist) {
+          const overlap = (minDist - dist) / minDist;
+          const falloff = overlap * overlap;
+          pushX += (dx / dist) * 18 * falloff;
+          pushY += (dy / dist) * 18 * falloff;
+        }
+      }
+
+      b.targetX.set(pushX);
+      b.targetY.set(pushY);
+    }
+  });
+
+  const ctxValue = useMemo(
+    () => ({ mouseX, mouseY, active, bubbles }),
+    [mouseX, mouseY, active]
+  );
 
   return (
     <section id="home" className="relative overflow-hidden pt-20 pb-28 md:pt-28 md:pb-40">
@@ -248,7 +314,7 @@ function Hero() {
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
         >
-          <MouseContext.Provider value={{ mouseX, mouseY, active, width, height }}>
+          <MouseContext.Provider value={ctxValue}>
             <motion.div
               className="absolute inset-0 rounded-full"
               style={{
@@ -284,6 +350,7 @@ function Hero() {
                   label={c.label}
                   leftPct={leftPct}
                   topPct={topPct}
+                  containerSize={sizeRef.current}
                   duration={4 + (i % 3)}
                   delay={i * 0.25}
                 >
@@ -302,6 +369,7 @@ function Hero() {
     </section>
   );
 }
+
 
 function SectionHeading({ kicker, title, sub }: { kicker: string; title: string; sub?: string }) {
   return (
