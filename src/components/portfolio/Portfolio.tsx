@@ -5,6 +5,7 @@ import {
   Cloud, Code2, Database, Server, Globe2, GraduationCap, Award,
 } from "lucide-react";
 import iyadPhoto from "@/assets/iyad.jpeg";
+import awsLogo from "@/assets/logos/aws.svg";
 import { GitHubSection } from "./GitHubSection";
 
 const EMAIL = "iyad@eltifi.com";
