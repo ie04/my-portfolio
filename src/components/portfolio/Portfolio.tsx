@@ -112,7 +112,7 @@ function MagneticBubble({
   }, [leftPct, topPct, bubbles]);
 
   return (
-    <motion.div
+    <div
       ref={bubbleRef}
       title={label}
       aria-label={label}
@@ -126,7 +126,7 @@ function MagneticBubble({
       >
         {children}
       </motion.div>
-    </motion.div>
+    </div>
   );
 }
 
