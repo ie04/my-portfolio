@@ -152,7 +152,7 @@ function Hero() {
             { label: "Node.js", slug: "nodedotjs", color: "5FA04E" },
             { label: "Python", slug: "python", color: "3776AB" },
             { label: "PostgreSQL", slug: "postgresql", color: "4169E1" },
-            { label: "AWS", slug: "amazonwebservices", color: "FF9900" },
+            { label: "AWS", local: awsLogo },
             { label: "Docker", slug: "docker", color: "2496ED" },
             { label: "Linux", slug: "linux", color: "FFFFFF" },
           ].map((c, i, arr) => {
