@@ -171,7 +171,7 @@ function Hero() {
                 transition={{ duration: 4 + (i % 3), repeat: Infinity, ease: "easeInOut", delay: i * 0.25 }}
               >
                 <img
-                  src={`https://cdn.simpleicons.org/${c.slug}/${c.color}`}
+                  src={c.local ? c.local : `https://cdn.simpleicons.org/${c.slug}/${c.color}`}
                   alt={c.label}
                   loading="lazy"
                   className="size-6 md:size-7"
