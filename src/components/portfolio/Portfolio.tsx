@@ -7,9 +7,9 @@ import {
 import iyadPhoto from "@/assets/iyad.jpeg";
 import { GitHubSection } from "./GitHubSection";
 
-const EMAIL = "iyadeltifi04@gmail.com";
+const EMAIL = "iyad@eltifi.com";
 const PHONE_DISPLAY = "(813) 638-6858";
-const PHONE_HREF = "tel:8136386858";
+const PHONE_HREF = "tel:+18136386858";
 const GITHUB = "https://github.com/ie04";
 const LINKEDIN = "https://www.linkedin.com/in/iyad-eltifi/";
 
@@ -88,8 +88,9 @@ function Hero() {
             transition={{ duration: 0.7, delay: 0.15 }}
             className="mt-5 max-w-xl text-base text-muted-foreground md:text-lg"
           >
-            I'm Iyad — a cloud computing & IT student at USF and the founder of PageFoundry.
-            I help small businesses replace outdated websites with fast, mobile-first sites that actually convert.
+            I'm Iyad — a B.S. Cloud Computing student at WGU with an A.A. in Computer Engineering from HCC,
+            and the founder of PageFoundry. I help small businesses replace outdated websites
+            with fast, mobile-first sites that actually convert.
           </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 16 }}
@@ -145,10 +146,10 @@ function Hero() {
             className="absolute inset-3 rounded-full object-cover ring-1 ring-border"
           />
           {[
-            { label: "TypeScript", x: "-12%", y: "10%" },
+            { label: "Python", x: "-12%", y: "10%" },
             { label: "AWS", x: "100%", y: "20%" },
-            { label: "React", x: "-18%", y: "70%" },
-            { label: "SQL", x: "95%", y: "75%" },
+            { label: "Java", x: "-18%", y: "70%" },
+            { label: "Linux", x: "95%", y: "75%" },
           ].map((c, i) => (
             <motion.span
               key={c.label}
@@ -184,10 +185,10 @@ function SectionHeading({ kicker, title, sub }: { kicker: string; title: string;
 
 function About() {
   const stats = [
-    { v: "3+", l: "Industry certifications" },
-    { v: "4", l: "Languages spoken" },
+    { v: "9", l: "Industry certifications" },
+    { v: "AWS + CompTIA", l: "Cloud & IT stack" },
     { v: "PageFoundry", l: "Web studio I run" },
-    { v: "Tampa, FL", l: "Based at USF" },
+    { v: "Tampa, FL", l: "Home base" },
   ];
   return (
     <section id="about" className="py-24 md:py-32">
@@ -196,15 +197,18 @@ function About() {
         <div className="grid gap-10 lg:grid-cols-[1.4fr_1fr]">
           <div className="glass rounded-2xl p-7 text-[15px] leading-relaxed text-muted-foreground">
             <p>
-              I'm a Cloud Computing & Information Technology student at the University of South Florida,
-              with hands-on experience as an IT Specialist supporting K-12 schools and as the founder of{" "}
-              <span className="text-foreground font-medium">PageFoundry</span> — a web studio focused on
-              giving small businesses sites that look modern, load fast, and earn trust at first glance.
+              I'm a dedicated IT professional pursuing a B.S. in Cloud Computing at{" "}
+              <span className="text-foreground font-medium">Western Governors University</span>,
+              with an A.A. in Computer Engineering from{" "}
+              <span className="text-foreground font-medium">Hillsborough Community College</span>{" "}
+              and an IB Diploma from C. Leon King High School. My background spans technical support,
+              database maintenance, and systems auditing, and I'm proficient in Python, Java, and Linux environments.
             </p>
             <p className="mt-4">
-              My background sits between IT operations, cloud infrastructure, and full-stack web. That mix
-              is what most freelancers don't have — I can design the site, set up the cloud hosting,
-              wire up analytics, and keep it running long after launch.
+              On top of that I run <span className="text-foreground font-medium">PageFoundry</span> —
+              a web studio focused on giving small businesses sites that look modern, load fast, and earn trust at first glance.
+              I hold the AWS Certified Cloud Practitioner and the CompTIA trifecta (A+, Network+, Security+),
+              plus Cloud+, Project+, ITIL, and LPI Linux Essentials.
             </p>
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -288,17 +292,17 @@ function WhyMe() {
 }
 
 const SKILLS = [
-  { icon: Code2, label: "TypeScript" }, { icon: Code2, label: "JavaScript" },
-  { icon: Code2, label: "Python" }, { icon: Code2, label: "Java" },
-  { icon: Database, label: "SQL" }, { icon: Database, label: "PostgreSQL" },
-  { icon: Globe2, label: "React" }, { icon: Globe2, label: "TanStack" },
-  { icon: Server, label: "Node.js" }, { icon: Server, label: "REST APIs" },
-  { icon: Cloud, label: "AWS" }, { icon: Cloud, label: "Cloud Computing" },
-  { icon: Server, label: "Linux" }, { icon: Server, label: "Bash" },
-  { icon: Wrench, label: "Git" }, { icon: Wrench, label: "Docker" },
-  { icon: Globe2, label: "Tailwind CSS" }, { icon: Globe2, label: "HTML/CSS" },
-  { icon: Search, label: "SEO" }, { icon: Gauge, label: "Web Performance" },
+  { icon: Code2, label: "Java" }, { icon: Code2, label: "Python" },
+  { icon: Code2, label: "JavaScript" }, { icon: Code2, label: "C" },
+  { icon: Code2, label: "C++" },
+  { icon: Database, label: "PostgreSQL" }, { icon: Database, label: "Firestore" },
+  { icon: Globe2, label: "Web Design & Development" },
+  { icon: Cloud, label: "AWS" }, { icon: Cloud, label: "Cloud Architecture" },
+  { icon: Server, label: "Linux" },
+  { icon: Server, label: "Networking" },
   { icon: ShieldCheck, label: "IT Support" },
+  { icon: Database, label: "Database Maintenance" },
+  { icon: ShieldCheck, label: "Systems Auditing" },
 ];
 
 function Skills() {
@@ -334,27 +338,50 @@ const EXPERIENCE = [
   {
     role: "Founder",
     org: "PageFoundry",
-    when: "2024 — Present",
+    when: "Present",
     bullets: [
-      "Designed, built, and deployed custom websites for small businesses with a focus on mobile-first performance and lead conversion.",
-      "Owns the full delivery stack: design, build, hosting, DNS, SSL, analytics, and ongoing maintenance.",
+      "Design, build, and deploy custom websites for small businesses with a focus on mobile-first performance and lead conversion.",
+      "Own the full delivery stack: design, build, hosting, DNS, SSL, analytics, and ongoing maintenance.",
     ],
   },
   {
-    role: "IT Specialist",
-    org: "K-12 School District",
-    when: "2023 — Present",
+    role: "Financial Aid Advisor",
+    org: "Full Sail University · Orlando, FL (Remote)",
+    when: "Oct 2025 — Apr 2026",
     bullets: [
-      "First-line support for staff and faculty across networking, accounts, hardware, and classroom tech.",
-      "Documented recurring issues and built repeatable fix workflows that cut average ticket time.",
+      "Advised students on federal aid eligibility by analyzing FAFSA data and government databases.",
+      "Audited university databases to identify and resolve financial aid discrepancies.",
+      "Managed student accounts through data maintenance and document processing.",
     ],
   },
   {
-    role: "Cloud Computing & IT — B.S. in progress",
-    org: "University of South Florida",
-    when: "Tampa, FL",
+    role: "Pharmacy Technician",
+    org: "Walgreens Pharmacy · Tampa, FL",
+    when: "Dec 2023 — Oct 2025",
     bullets: [
-      "Coursework: cloud architecture (AWS), Linux systems, networking, databases, programming in Java/Python/JS.",
+      "Processed medical prescriptions with high accuracy according to prescriber specifications.",
+      "Resolved insurance billing issues and navigated third-party rejection (TPR) codes.",
+      "Facilitated communication between medical providers and patients to manage medication refills.",
+    ],
+  },
+  {
+    role: "CNC Operator / Customer Technical Support",
+    org: "U.S. Doors & More Inc. · Tampa, FL",
+    when: "Aug 2023 — Nov 2023",
+    bullets: [
+      "Operated advanced CNC machinery and power tools to manufacture custom products.",
+      "Administered an online retail storefront, synchronizing digital inventory with physical warehouse stock.",
+      "Provided technical support for website users while managing bulk sales accounts.",
+    ],
+  },
+  {
+    role: "Retail / Warehouse Management",
+    org: "Benhalex Corp. · Lutz, FL",
+    when: "Jun 2019 — Nov 2020",
+    bullets: [
+      "Controlled quality for high-volume inventory entering and exiting a central database.",
+      "Managed product listings across Amazon, eBay, and Walmart e-commerce platforms.",
+      "Coordinated wholesale transactions and maintained relationships with retail clients.",
     ],
   },
 ];
@@ -405,18 +432,35 @@ function EduCerts() {
         <div className="grid gap-4 md:grid-cols-2">
           <div className="glass rounded-2xl p-6">
             <GraduationCap className="size-5 text-primary" />
-            <h3 className="mt-3 text-lg font-semibold">University of South Florida</h3>
-            <p className="text-sm text-muted-foreground">
-              B.S. Cloud Computing & Information Technology — in progress, Tampa, FL.
-            </p>
+            <h3 className="mt-3 text-lg font-semibold">Education</h3>
+            <ul className="mt-2 space-y-2 text-sm text-muted-foreground">
+              <li>
+                <span className="text-foreground">Western Governors University</span> — B.S., Cloud Computing
+                <span className="block text-xs">Salt Lake City, UT · Jul 2025 — Jun 2026</span>
+              </li>
+              <li>
+                <span className="text-foreground">Hillsborough Community College</span> — A.A., Computer Engineering
+                <span className="block text-xs">Tampa, FL · Aug 2023 — May 2025</span>
+              </li>
+              <li>
+                <span className="text-foreground">C. Leon King High School</span> — International Baccalaureate Diploma
+                <span className="block text-xs">Tampa, FL · Aug 2018 — May 2022</span>
+              </li>
+            </ul>
           </div>
           <div className="glass rounded-2xl p-6">
             <Award className="size-5 text-primary" />
-            <h3 className="mt-3 text-lg font-semibold">Industry Certifications</h3>
-            <ul className="mt-2 space-y-1.5 text-sm text-muted-foreground">
-              <li>· AWS Cloud Practitioner — foundational cloud architecture</li>
-              <li>· CompTIA-aligned IT support coursework</li>
-              <li>· Ongoing training in web performance & SEO</li>
+            <h3 className="mt-3 text-lg font-semibold">Certifications</h3>
+            <ul className="mt-2 grid grid-cols-1 gap-1.5 text-sm text-muted-foreground sm:grid-cols-2">
+              <li>· AWS Certified Cloud Practitioner</li>
+              <li>· CompTIA A+</li>
+              <li>· CompTIA Network+</li>
+              <li>· CompTIA Security+</li>
+              <li>· CompTIA Cloud+</li>
+              <li>· CompTIA Project+</li>
+              <li>· ITIL IT Service Management</li>
+              <li>· LPI Linux Essentials</li>
+              <li>· Florida State Pharmacy Technician</li>
             </ul>
           </div>
         </div>
