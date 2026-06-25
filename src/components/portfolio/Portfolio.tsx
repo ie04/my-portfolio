@@ -56,8 +56,7 @@ function Nav() {
 type BubbleEntry = {
   leftPct: number;
   topPct: number;
-  x: MotionValue<number>;
-  y: MotionValue<number>;
+  element: HTMLDivElement;
   offsetX: number;
   offsetY: number;
   radius: number;
@@ -94,16 +93,14 @@ function MagneticBubble({
   children: ReactNode;
 }) {
   const { bubbles } = useMouseContext();
-
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
+  const bubbleRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    if (!bubbleRef.current) return;
     const entry: BubbleEntry = {
       leftPct,
       topPct,
-      x,
-      y,
+      element: bubbleRef.current,
       offsetX: 0,
       offsetY: 0,
       radius: 30,
@@ -112,14 +109,15 @@ function MagneticBubble({
     return () => {
       bubbles.current = bubbles.current.filter((b) => b !== entry);
     };
-  }, [leftPct, topPct, bubbles, x, y]);
+  }, [leftPct, topPct, bubbles]);
 
   return (
     <motion.div
+      ref={bubbleRef}
       title={label}
       aria-label={label}
       className="pointer-events-none absolute"
-      style={{ left: `${leftPct}%`, top: `${topPct}%`, x, y }}
+      style={{ left: `${leftPct}%`, top: `${topPct}%` }}
     >
       <motion.div
         className="flex size-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-card/80 shadow-lg backdrop-blur md:size-14"
@@ -193,8 +191,7 @@ function Hero() {
       for (const b of list) {
         b.offsetX = 0;
         b.offsetY = 0;
-        b.x.set(0);
-        b.y.set(0);
+        b.element.style.transform = "translate3d(0px, 0px, 0px)";
       }
       return;
     }
@@ -285,8 +282,7 @@ function Hero() {
     for (const item of desired) {
       item.b.offsetX += (item.dx - item.b.offsetX) * follow;
       item.b.offsetY += (item.dy - item.b.offsetY) * follow;
-      item.b.x.set(item.b.offsetX);
-      item.b.y.set(item.b.offsetY);
+      item.b.element.style.transform = `translate3d(${item.b.offsetX.toFixed(2)}px, ${item.b.offsetY.toFixed(2)}px, 0px)`;
     }
   });
 
