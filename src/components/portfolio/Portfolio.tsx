@@ -119,7 +119,11 @@ function MagneticBubble({
       title={label}
       aria-label={label}
       className="pointer-events-none absolute flex size-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center md:size-14"
-      style={{ left: `${leftPct}%`, top: `${topPct}%`, x, y }}
+      style={{
+        left: `${leftPct}%`,
+        top: `${topPct}%`,
+        transform: `translate(calc(-50% + ${x.get()}px), calc(-50% + ${y.get()}px))`,
+      }}
     >
       <motion.div
         className="flex size-full items-center justify-center rounded-full border border-border bg-card/80 shadow-lg backdrop-blur"
