@@ -1,13 +1,14 @@
-import { motion, useMotionValue, useSpring, useTransform, type MotionValue } from "framer-motion";
+import { motion, useMotionValue, useSpring, useAnimationFrame, type MotionValue } from "framer-motion";
 import {
   Mail, Phone, MapPin, ArrowRight, Github, Linkedin, ExternalLink,
   Sparkles, Gauge, Wrench, Smartphone, Search, FormInput, ShieldCheck,
   Cloud, Code2, Database, Server, Globe2, GraduationCap, Award,
 } from "lucide-react";
-import { createContext, useContext, useRef, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, type ReactNode } from "react";
 import iyadPhoto from "@/assets/iyad.jpeg";
 import awsLogo from "@/assets/logos/aws.svg";
 import { GitHubSection } from "./GitHubSection";
+
 
 const EMAIL = "iyad@eltifi.com";
 const PHONE_DISPLAY = "(813) 638-6858";
