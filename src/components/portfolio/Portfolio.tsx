@@ -1,13 +1,14 @@
-import { motion, useMotionValue, useSpring, useTransform, type MotionValue } from "framer-motion";
+import { motion, useMotionValue, useSpring, useAnimationFrame, type MotionValue } from "framer-motion";
 import {
   Mail, Phone, MapPin, ArrowRight, Github, Linkedin, ExternalLink,
   Sparkles, Gauge, Wrench, Smartphone, Search, FormInput, ShieldCheck,
   Cloud, Code2, Database, Server, Globe2, GraduationCap, Award,
 } from "lucide-react";
-import { createContext, useContext, useRef, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, type ReactNode } from "react";
 import iyadPhoto from "@/assets/iyad.jpeg";
 import awsLogo from "@/assets/logos/aws.svg";
 import { GitHubSection } from "./GitHubSection";
+
 
 const EMAIL = "iyad@eltifi.com";
 const PHONE_DISPLAY = "(813) 638-6858";
@@ -52,12 +53,21 @@ function Nav() {
   );
 }
 
+type BubbleEntry = {
+  restX: number;
+  restY: number;
+  targetX: MotionValue<number>;
+  targetY: MotionValue<number>;
+  springX: MotionValue<number>;
+  springY: MotionValue<number>;
+  radius: number;
+};
+
 const MouseContext = createContext<{
   mouseX: MotionValue<number>;
   mouseY: MotionValue<number>;
   active: MotionValue<number>;
-  width: MotionValue<number>;
-  height: MotionValue<number>;
+  bubbles: React.MutableRefObject<BubbleEntry[]>;
 } | null>(null);
 
 function useMouseContext() {
@@ -70,6 +80,7 @@ function MagneticBubble({
   label,
   leftPct,
   topPct,
+  containerSize,
   duration,
   delay,
   children,
@@ -77,60 +88,45 @@ function MagneticBubble({
   label: string;
   leftPct: number;
   topPct: number;
+  containerSize: { w: number; h: number };
   duration: number;
   delay: number;
   children: ReactNode;
 }) {
-  const { mouseX, mouseY, active, width, height } = useMouseContext();
+  const { bubbles } = useMouseContext();
 
-  // Hard exclusion zone: the bubble can never enter this radius around the cursor.
-  const safeRadius = 110;
-  // Soft outer zone: gentle drift beyond the exclusion edge.
-  const outerRadius = 220;
+  const targetX = useMotionValue(0);
+  const targetY = useMotionValue(0);
 
-  const repel = (latest: number[]) => {
-    const [mx, my, a, w, h] = latest;
-    if (!a) return { x: 0, y: 0 };
-    const restX = (leftPct / 100) * w;
-    const restY = (topPct / 100) * h;
-    const dx = restX - mx;
-    const dy = restY - my;
-    const dist = Math.hypot(dx, dy) || 0.0001;
-    if (dist >= outerRadius) return { x: 0, y: 0 };
-    const nx = dx / dist;
-    const ny = dy / dist;
-    // Target distance from cursor: at least safeRadius, easing back to dist by outerRadius.
-    let targetDist: number;
-    if (dist < safeRadius) {
-      targetDist = safeRadius;
-    } else {
-      const t = (dist - safeRadius) / (outerRadius - safeRadius);
-      targetDist = safeRadius + (dist - safeRadius) * (t * t * (3 - 2 * t));
-    }
-    return {
-      x: mx + nx * targetDist - restX,
-      y: my + ny * targetDist - restY,
+  // Soft, fluid spring — no perceptible bounce, gentle settle.
+  const springConfig = { stiffness: 90, damping: 24, mass: 1.1 };
+  const springX = useSpring(targetX, springConfig);
+  const springY = useSpring(targetY, springConfig);
+
+  useEffect(() => {
+    const restX = (leftPct / 100) * containerSize.w;
+    const restY = (topPct / 100) * containerSize.h;
+    const entry: BubbleEntry = {
+      restX,
+      restY,
+      targetX,
+      targetY,
+      springX,
+      springY,
+      radius: 28, // visual bubble radius in px
     };
-  };
-
-  const springConfig = { stiffness: 700, damping: 40, mass: 0.6 };
-
-  const x = useSpring(
-    useTransform<number, number>([mouseX, mouseY, active, width, height], (latest) => repel(latest).x),
-    springConfig
-  );
-
-  const y = useSpring(
-    useTransform<number, number>([mouseX, mouseY, active, width, height], (latest) => repel(latest).y),
-    springConfig
-  );
+    bubbles.current.push(entry);
+    return () => {
+      bubbles.current = bubbles.current.filter((b) => b !== entry);
+    };
+  }, [leftPct, topPct, containerSize.w, containerSize.h, bubbles, targetX, targetY, springX, springY]);
 
   return (
     <motion.div
       title={label}
       aria-label={label}
       className="absolute flex size-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center md:size-14"
-      style={{ left: `${leftPct}%`, top: `${topPct}%`, x, y }}
+      style={{ left: `${leftPct}%`, top: `${topPct}%`, x: springX, y: springY }}
     >
       <motion.div
         className="flex size-full items-center justify-center rounded-full border border-border bg-card/80 shadow-lg backdrop-blur"
@@ -143,31 +139,98 @@ function MagneticBubble({
   );
 }
 
+
 function Hero() {
   const containerRef = useRef<HTMLDivElement>(null);
-  const mouseX = useMotionValue(0);
-  const mouseY = useMotionValue(0);
+  const mouseX = useMotionValue(-9999);
+  const mouseY = useMotionValue(-9999);
   const active = useMotionValue(0);
-  const width = useMotionValue(0);
-  const height = useMotionValue(0);
+  const bubbles = useRef<BubbleEntry[]>([]);
+  const sizeRef = useRef({ w: 320, h: 320 });
 
-  const updateSize = () => {
-    if (!containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    width.set(rect.width);
-    height.set(rect.height);
-  };
+  useEffect(() => {
+    const update = () => {
+      if (!containerRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      sizeRef.current = { w: rect.width, h: rect.height };
+    };
+    update();
+    window.addEventListener("resize", update);
+    return () => window.removeEventListener("resize", update);
+  }, []);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    updateSize();
     const rect = containerRef.current?.getBoundingClientRect();
     if (!rect) return;
+    sizeRef.current = { w: rect.width, h: rect.height };
     mouseX.set(e.clientX - rect.left);
     mouseY.set(e.clientY - rect.top);
     active.set(1);
   };
 
   const handleMouseLeave = () => active.set(0);
+
+  // Physics loop: compute target positions for every bubble each frame.
+  // Cursor field starts at CURSOR_RADIUS and falls off smoothly (no hard wall).
+  // Bubbles also softly repel each other so they never overlap.
+  useAnimationFrame(() => {
+    const list = bubbles.current;
+    if (!list.length) return;
+    const isActive = active.get() > 0.5;
+    const mx = mouseX.get();
+    const my = mouseY.get();
+
+    const CURSOR_RADIUS = 130; // invisible field around the cursor
+    const CURSOR_STRENGTH = 70; // max push from cursor
+
+    // Compute desired displacement for each bubble.
+    for (const b of list) {
+      let pushX = 0;
+      let pushY = 0;
+
+      // Cursor repulsion with smoothstep falloff.
+      if (isActive) {
+        const currentX = b.restX + b.springX.get();
+        const currentY = b.restY + b.springY.get();
+        const dx = currentX - mx;
+        const dy = currentY - my;
+        const dist = Math.hypot(dx, dy) || 0.0001;
+        if (dist < CURSOR_RADIUS) {
+          const t = 1 - dist / CURSOR_RADIUS; // 0..1
+          const falloff = t * t * (3 - 2 * t); // smoothstep
+          pushX += (dx / dist) * CURSOR_STRENGTH * falloff;
+          pushY += (dy / dist) * CURSOR_STRENGTH * falloff;
+        }
+      }
+
+      // Inter-bubble repulsion using current rendered positions.
+      const myX = b.restX + b.springX.get();
+      const myY = b.restY + b.springY.get();
+      const minDist = b.radius * 2 + 6;
+      for (const o of list) {
+        if (o === b) continue;
+        const ox = o.restX + o.springX.get();
+        const oy = o.restY + o.springY.get();
+        const dx = myX - ox;
+        const dy = myY - oy;
+        const dist = Math.hypot(dx, dy) || 0.0001;
+        if (dist < minDist) {
+          const overlap = (minDist - dist) / minDist;
+          const falloff = overlap * overlap;
+          pushX += (dx / dist) * 18 * falloff;
+          pushY += (dy / dist) * 18 * falloff;
+        }
+      }
+
+      b.targetX.set(pushX);
+      b.targetY.set(pushY);
+    }
+  });
+
+  const ctxValue = useMemo(
+    () => ({ mouseX, mouseY, active, bubbles }),
+    [mouseX, mouseY, active]
+  );
 
   return (
     <section id="home" className="relative overflow-hidden pt-20 pb-28 md:pt-28 md:pb-40">
@@ -251,7 +314,7 @@ function Hero() {
           onMouseMove={handleMouseMove}
           onMouseLeave={handleMouseLeave}
         >
-          <MouseContext.Provider value={{ mouseX, mouseY, active, width, height }}>
+          <MouseContext.Provider value={ctxValue}>
             <motion.div
               className="absolute inset-0 rounded-full"
               style={{
@@ -287,6 +350,7 @@ function Hero() {
                   label={c.label}
                   leftPct={leftPct}
                   topPct={topPct}
+                  containerSize={sizeRef.current}
                   duration={4 + (i % 3)}
                   delay={i * 0.25}
                 >
@@ -305,6 +369,7 @@ function Hero() {
     </section>
   );
 }
+
 
 function SectionHeading({ kicker, title, sub }: { kicker: string; title: string; sub?: string }) {
   return (
