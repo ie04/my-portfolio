@@ -88,8 +88,9 @@ function Hero() {
             transition={{ duration: 0.7, delay: 0.15 }}
             className="mt-5 max-w-xl text-base text-muted-foreground md:text-lg"
           >
-            I'm Iyad — a cloud computing & IT student at USF and the founder of PageFoundry.
-            I help small businesses replace outdated websites with fast, mobile-first sites that actually convert.
+            I'm Iyad — a B.S. Cloud Computing student at WGU with an A.A. in Computer Engineering from HCC,
+            and the founder of PageFoundry. I help small businesses replace outdated websites
+            with fast, mobile-first sites that actually convert.
           </motion.p>
           <motion.div
             initial={{ opacity: 0, y: 16 }}
