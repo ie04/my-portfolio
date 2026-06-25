@@ -1,4 +1,4 @@
-import { motion, useMotionValue, useAnimationFrame, useReducedMotion, type MotionValue } from "framer-motion";
+import { motion, useMotionValue, useReducedMotion, type MotionValue } from "framer-motion";
 import {
   Mail, Phone, MapPin, ArrowRight, Github, Linkedin, ExternalLink,
   Sparkles, Gauge, Wrench, Smartphone, Search, FormInput, ShieldCheck,
@@ -181,33 +181,9 @@ function Hero() {
     };
   }, [active, mouseX, mouseY]);
 
-  // Displacement-field loop: the cursor bends each icon away from its resting
-  // point with continuous easing. No spring solver, so motion stays fluid.
-  useAnimationFrame((_time, delta) => {
-    const list = bubbles.current;
-    if (!list.length) return;
-
-    if (shouldReduceMotion) {
-      for (const b of list) {
-        b.offsetX = 0;
-        b.offsetY = 0;
-        b.element.style.transform = "translate3d(0px, 0px, 0px)";
-      }
-      return;
-    }
-
-    const isActive = active.get() > 0.5;
-    const mx = mouseX.get();
-    const my = mouseY.get();
-    const { w, h } = sizeRef.current;
-    const dt = Math.min(typeof delta === "number" ? delta : 16, 32) / 1000;
-
-    const FIELD_RADIUS = ICON_FIELD_RADIUS;
-    const CORE_RADIUS = 86;
-    const MAX_SHIFT = 138;
-    const CORE_SHIFT = 52;
-    const FOLLOW_SPEED = isActive ? 21 : 9;
-    const follow = 1 - Math.exp(-dt * FOLLOW_SPEED);
+  useEffect(() => {
+    let raf = 0;
+    let previous = performance.now();
 
     const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
     const smoothstep = (value: number) => {
@@ -215,76 +191,106 @@ function Hero() {
       return t * t * (3 - 2 * t);
     };
 
-    const desired = list.map((b) => {
-      const restX = (b.leftPct / 100) * w;
-      const restY = (b.topPct / 100) * h;
-      let dx = 0;
-      let dy = 0;
+    const tick = (now: number) => {
+      const list = bubbles.current;
+      const dt = Math.min(now - previous, 32) / 1000;
+      previous = now;
 
-      if (isActive) {
-        const renderedX = restX + b.offsetX;
-        const renderedY = restY + b.offsetY;
-        let awayX = renderedX - mx;
-        let awayY = renderedY - my;
-        let distance = Math.hypot(awayX, awayY);
+      if (list.length) {
+        if (shouldReduceMotion) {
+          for (const b of list) {
+            b.offsetX = 0;
+            b.offsetY = 0;
+            b.element.style.transform = "translate3d(0px, 0px, 0px)";
+          }
+        } else {
+          const isActive = active.get() > 0.5;
+          const mx = mouseX.get();
+          const my = mouseY.get();
+          const { w, h } = sizeRef.current;
+          const coreRadius = 86;
+          const maxShift = 138;
+          const coreShift = 52;
+          const followSpeed = isActive ? 18 : 8;
+          const follow = 1 - Math.exp(-dt * followSpeed);
 
-        if (distance < 0.001) {
-          const fallbackAngle = Math.atan2(restY - h / 2, restX - w / 2) || -Math.PI / 2;
-          awayX = Math.cos(fallbackAngle);
-          awayY = Math.sin(fallbackAngle);
-          distance = 0.001;
-        }
+          const desired = list.map((b) => {
+            const restX = (b.leftPct / 100) * w;
+            const restY = (b.topPct / 100) * h;
+            let dx = 0;
+            let dy = 0;
 
-        const nx = awayX / distance;
-        const ny = awayY / distance;
-        const field = smoothstep((FIELD_RADIUS - distance) / FIELD_RADIUS);
-        const core = smoothstep((CORE_RADIUS - distance) / CORE_RADIUS);
-        const displacement = field * MAX_SHIFT + core * CORE_SHIFT;
+            if (isActive) {
+              const renderedX = restX + b.offsetX;
+              const renderedY = restY + b.offsetY;
+              let awayX = renderedX - mx;
+              let awayY = renderedY - my;
+              let distance = Math.hypot(awayX, awayY);
 
-        dx += nx * displacement;
-        dy += ny * displacement;
-      }
+              if (distance < 0.001) {
+                const fallbackAngle = Math.atan2(restY - h / 2, restX - w / 2) || -Math.PI / 2;
+                awayX = Math.cos(fallbackAngle);
+                awayY = Math.sin(fallbackAngle);
+                distance = 0.001;
+              }
 
-      return { b, restX, restY, dx, dy };
-    });
+              const nx = awayX / distance;
+              const ny = awayY / distance;
+              const field = smoothstep((ICON_FIELD_RADIUS - distance) / ICON_FIELD_RADIUS);
+              const core = smoothstep((coreRadius - distance) / coreRadius);
+              const displacement = field * maxShift + core * coreShift;
 
-    // Icons displace each other as part of the same field instead of colliding.
-    for (let pass = 0; pass < 3; pass += 1) {
-      for (let i = 0; i < desired.length; i += 1) {
-        for (let j = i + 1; j < desired.length; j += 1) {
-          const a = desired[i];
-          const b = desired[j];
-          let dx = a.restX + a.dx - (b.restX + b.dx);
-          let dy = a.restY + a.dy - (b.restY + b.dy);
-          let distance = Math.hypot(dx, dy);
-          const minDistance = a.b.radius + b.b.radius + 12;
+              dx += nx * displacement;
+              dy += ny * displacement;
+            }
 
-          if (distance < 0.001) {
-            const angle = (i / desired.length) * Math.PI * 2;
-            dx = Math.cos(angle);
-            dy = Math.sin(angle);
-            distance = 0.001;
+            return { b, restX, restY, dx, dy };
+          });
+
+          for (let pass = 0; pass < 3; pass += 1) {
+            for (let i = 0; i < desired.length; i += 1) {
+              for (let j = i + 1; j < desired.length; j += 1) {
+                const a = desired[i];
+                const b = desired[j];
+                let dx = a.restX + a.dx - (b.restX + b.dx);
+                let dy = a.restY + a.dy - (b.restY + b.dy);
+                let distance = Math.hypot(dx, dy);
+                const minDistance = a.b.radius + b.b.radius + 12;
+
+                if (distance < 0.001) {
+                  const angle = (i / desired.length) * Math.PI * 2;
+                  dx = Math.cos(angle);
+                  dy = Math.sin(angle);
+                  distance = 0.001;
+                }
+
+                if (distance < minDistance) {
+                  const nx = dx / distance;
+                  const ny = dy / distance;
+                  const separation = (minDistance - distance) * 0.5;
+                  a.dx += nx * separation;
+                  a.dy += ny * separation;
+                  b.dx -= nx * separation;
+                  b.dy -= ny * separation;
+                }
+              }
+            }
           }
 
-          if (distance < minDistance) {
-            const nx = dx / distance;
-            const ny = dy / distance;
-            const separation = (minDistance - distance) * 0.5;
-            a.dx += nx * separation;
-            a.dy += ny * separation;
-            b.dx -= nx * separation;
-            b.dy -= ny * separation;
+          for (const item of desired) {
+            item.b.offsetX += (item.dx - item.b.offsetX) * follow;
+            item.b.offsetY += (item.dy - item.b.offsetY) * follow;
+            item.b.element.style.transform = `translate3d(${item.b.offsetX.toFixed(2)}px, ${item.b.offsetY.toFixed(2)}px, 0px)`;
           }
         }
       }
-    }
 
-    for (const item of desired) {
-      item.b.offsetX += (item.dx - item.b.offsetX) * follow;
-      item.b.offsetY += (item.dy - item.b.offsetY) * follow;
-      item.b.element.style.transform = `translate3d(${item.b.offsetX.toFixed(2)}px, ${item.b.offsetY.toFixed(2)}px, 0px)`;
-    }
-  });
+      raf = requestAnimationFrame(tick);
+    };
+
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [active, mouseX, mouseY, shouldReduceMotion]);
 
   const ctxValue = useMemo(
     () => ({ mouseX, mouseY, active, bubbles }),
