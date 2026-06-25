@@ -5,6 +5,7 @@ import {
   Cloud, Code2, Database, Server, Globe2, GraduationCap, Award,
 } from "lucide-react";
 import iyadPhoto from "@/assets/iyad.jpeg";
+import awsLogo from "@/assets/logos/aws.svg";
 import { GitHubSection } from "./GitHubSection";
 
 const EMAIL = "iyad@eltifi.com";
@@ -151,7 +152,7 @@ function Hero() {
             { label: "Node.js", slug: "nodedotjs", color: "5FA04E" },
             { label: "Python", slug: "python", color: "3776AB" },
             { label: "PostgreSQL", slug: "postgresql", color: "4169E1" },
-            { label: "AWS", slug: "amazonwebservices", color: "FF9900" },
+            { label: "AWS", local: awsLogo },
             { label: "Docker", slug: "docker", color: "2496ED" },
             { label: "Linux", slug: "linux", color: "FFFFFF" },
           ].map((c, i, arr) => {
@@ -170,7 +171,7 @@ function Hero() {
                 transition={{ duration: 4 + (i % 3), repeat: Infinity, ease: "easeInOut", delay: i * 0.25 }}
               >
                 <img
-                  src={`https://cdn.simpleicons.org/${c.slug}/${c.color}`}
+                  src={c.local ? c.local : `https://cdn.simpleicons.org/${c.slug}/${c.color}`}
                   alt={c.label}
                   loading="lazy"
                   className="size-6 md:size-7"
