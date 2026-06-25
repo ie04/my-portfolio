@@ -432,18 +432,35 @@ function EduCerts() {
         <div className="grid gap-4 md:grid-cols-2">
           <div className="glass rounded-2xl p-6">
             <GraduationCap className="size-5 text-primary" />
-            <h3 className="mt-3 text-lg font-semibold">University of South Florida</h3>
-            <p className="text-sm text-muted-foreground">
-              B.S. Cloud Computing & Information Technology — in progress, Tampa, FL.
-            </p>
+            <h3 className="mt-3 text-lg font-semibold">Education</h3>
+            <ul className="mt-2 space-y-2 text-sm text-muted-foreground">
+              <li>
+                <span className="text-foreground">Western Governors University</span> — B.S., Cloud Computing
+                <span className="block text-xs">Salt Lake City, UT · Jul 2025 — Jun 2026</span>
+              </li>
+              <li>
+                <span className="text-foreground">Hillsborough Community College</span> — A.A., Computer Engineering
+                <span className="block text-xs">Tampa, FL · Aug 2023 — May 2025</span>
+              </li>
+              <li>
+                <span className="text-foreground">C. Leon King High School</span> — International Baccalaureate Diploma
+                <span className="block text-xs">Tampa, FL · Aug 2018 — May 2022</span>
+              </li>
+            </ul>
           </div>
           <div className="glass rounded-2xl p-6">
             <Award className="size-5 text-primary" />
-            <h3 className="mt-3 text-lg font-semibold">Industry Certifications</h3>
-            <ul className="mt-2 space-y-1.5 text-sm text-muted-foreground">
-              <li>· AWS Cloud Practitioner — foundational cloud architecture</li>
-              <li>· CompTIA-aligned IT support coursework</li>
-              <li>· Ongoing training in web performance & SEO</li>
+            <h3 className="mt-3 text-lg font-semibold">Certifications</h3>
+            <ul className="mt-2 grid grid-cols-1 gap-1.5 text-sm text-muted-foreground sm:grid-cols-2">
+              <li>· AWS Certified Cloud Practitioner</li>
+              <li>· CompTIA A+</li>
+              <li>· CompTIA Network+</li>
+              <li>· CompTIA Security+</li>
+              <li>· CompTIA Cloud+</li>
+              <li>· CompTIA Project+</li>
+              <li>· ITIL IT Service Management</li>
+              <li>· LPI Linux Essentials</li>
+              <li>· Florida State Pharmacy Technician</li>
             </ul>
           </div>
         </div>
