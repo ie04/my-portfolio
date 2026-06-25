@@ -292,17 +292,17 @@ function WhyMe() {
 }
 
 const SKILLS = [
-  { icon: Code2, label: "TypeScript" }, { icon: Code2, label: "JavaScript" },
-  { icon: Code2, label: "Python" }, { icon: Code2, label: "Java" },
-  { icon: Database, label: "SQL" }, { icon: Database, label: "PostgreSQL" },
-  { icon: Globe2, label: "React" }, { icon: Globe2, label: "TanStack" },
-  { icon: Server, label: "Node.js" }, { icon: Server, label: "REST APIs" },
-  { icon: Cloud, label: "AWS" }, { icon: Cloud, label: "Cloud Computing" },
-  { icon: Server, label: "Linux" }, { icon: Server, label: "Bash" },
-  { icon: Wrench, label: "Git" }, { icon: Wrench, label: "Docker" },
-  { icon: Globe2, label: "Tailwind CSS" }, { icon: Globe2, label: "HTML/CSS" },
-  { icon: Search, label: "SEO" }, { icon: Gauge, label: "Web Performance" },
+  { icon: Code2, label: "Java" }, { icon: Code2, label: "Python" },
+  { icon: Code2, label: "JavaScript" }, { icon: Code2, label: "C" },
+  { icon: Code2, label: "C++" },
+  { icon: Database, label: "PostgreSQL" }, { icon: Database, label: "Firestore" },
+  { icon: Globe2, label: "Web Design & Development" },
+  { icon: Cloud, label: "AWS" }, { icon: Cloud, label: "Cloud Architecture" },
+  { icon: Server, label: "Linux" },
+  { icon: Server, label: "Networking" },
   { icon: ShieldCheck, label: "IT Support" },
+  { icon: Database, label: "Database Maintenance" },
+  { icon: ShieldCheck, label: "Systems Auditing" },
 ];
 
 function Skills() {
