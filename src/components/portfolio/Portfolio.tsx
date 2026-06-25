@@ -1,4 +1,4 @@
-import { motion, useMotionValue, useAnimationFrame, useReducedMotion, useMotionTemplate, type MotionValue } from "framer-motion";
+import { motion, useMotionValue, useAnimationFrame, useReducedMotion, type MotionValue } from "framer-motion";
 import {
   Mail, Phone, MapPin, ArrowRight, Github, Linkedin, ExternalLink,
   Sparkles, Gauge, Wrench, Smartphone, Search, FormInput, ShieldCheck,
@@ -97,7 +97,6 @@ function MagneticBubble({
 
   const x = useMotionValue(0);
   const y = useMotionValue(0);
-  const transform = useMotionTemplate`translate(calc(-50% + ${x}px), calc(-50% + ${y}px))`;
 
   useEffect(() => {
     const entry: BubbleEntry = {
@@ -119,15 +118,11 @@ function MagneticBubble({
     <motion.div
       title={label}
       aria-label={label}
-      className="pointer-events-none absolute flex size-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center md:size-14"
-      style={{
-        left: `${leftPct}%`,
-        top: `${topPct}%`,
-        transform,
-      }}
+      className="pointer-events-none absolute"
+      style={{ left: `${leftPct}%`, top: `${topPct}%`, x, y }}
     >
       <motion.div
-        className="flex size-full items-center justify-center rounded-full border border-border bg-card/80 shadow-lg backdrop-blur"
+        className="flex size-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-card/80 shadow-lg backdrop-blur md:size-14"
         animate={{ y: [0, -4, 0] }}
         transition={{ duration, repeat: Infinity, ease: "easeInOut", delay }}
       >
