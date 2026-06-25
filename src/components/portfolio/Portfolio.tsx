@@ -338,27 +338,50 @@ const EXPERIENCE = [
   {
     role: "Founder",
     org: "PageFoundry",
-    when: "2024 — Present",
+    when: "Present",
     bullets: [
-      "Designed, built, and deployed custom websites for small businesses with a focus on mobile-first performance and lead conversion.",
-      "Owns the full delivery stack: design, build, hosting, DNS, SSL, analytics, and ongoing maintenance.",
+      "Design, build, and deploy custom websites for small businesses with a focus on mobile-first performance and lead conversion.",
+      "Own the full delivery stack: design, build, hosting, DNS, SSL, analytics, and ongoing maintenance.",
     ],
   },
   {
-    role: "IT Specialist",
-    org: "K-12 School District",
-    when: "2023 — Present",
+    role: "Financial Aid Advisor",
+    org: "Full Sail University · Orlando, FL (Remote)",
+    when: "Oct 2025 — Apr 2026",
     bullets: [
-      "First-line support for staff and faculty across networking, accounts, hardware, and classroom tech.",
-      "Documented recurring issues and built repeatable fix workflows that cut average ticket time.",
+      "Advised students on federal aid eligibility by analyzing FAFSA data and government databases.",
+      "Audited university databases to identify and resolve financial aid discrepancies.",
+      "Managed student accounts through data maintenance and document processing.",
     ],
   },
   {
-    role: "Cloud Computing & IT — B.S. in progress",
-    org: "University of South Florida",
-    when: "Tampa, FL",
+    role: "Pharmacy Technician",
+    org: "Walgreens Pharmacy · Tampa, FL",
+    when: "Dec 2023 — Oct 2025",
     bullets: [
-      "Coursework: cloud architecture (AWS), Linux systems, networking, databases, programming in Java/Python/JS.",
+      "Processed medical prescriptions with high accuracy according to prescriber specifications.",
+      "Resolved insurance billing issues and navigated third-party rejection (TPR) codes.",
+      "Facilitated communication between medical providers and patients to manage medication refills.",
+    ],
+  },
+  {
+    role: "CNC Operator / Customer Technical Support",
+    org: "U.S. Doors & More Inc. · Tampa, FL",
+    when: "Aug 2023 — Nov 2023",
+    bullets: [
+      "Operated advanced CNC machinery and power tools to manufacture custom products.",
+      "Administered an online retail storefront, synchronizing digital inventory with physical warehouse stock.",
+      "Provided technical support for website users while managing bulk sales accounts.",
+    ],
+  },
+  {
+    role: "Retail / Warehouse Management",
+    org: "Benhalex Corp. · Lutz, FL",
+    when: "Jun 2019 — Nov 2020",
+    bullets: [
+      "Controlled quality for high-volume inventory entering and exiting a central database.",
+      "Managed product listings across Amazon, eBay, and Walmart e-commerce platforms.",
+      "Coordinated wholesale transactions and maintained relationships with retail clients.",
     ],
   },
 ];
