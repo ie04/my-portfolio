@@ -98,8 +98,8 @@ function MagneticBubble({
   const targetX = useMotionValue(0);
   const targetY = useMotionValue(0);
 
-  // Soft, fluid spring — no perceptible bounce, gentle settle.
-  const springConfig = { stiffness: 90, damping: 24, mass: 1.1 };
+  // Snappier but still smooth — higher stiffness with proportional damping = no bounce.
+  const springConfig = { stiffness: 260, damping: 32, mass: 0.9 };
   const springX = useSpring(targetX, springConfig);
   const springY = useSpring(targetY, springConfig);
 
