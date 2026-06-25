@@ -1,4 +1,4 @@
-import { motion, useMotionValue, useSpring, useAnimationFrame, type MotionValue } from "framer-motion";
+import { motion, useMotionValue, useReducedMotion, type MotionValue } from "framer-motion";
 import {
   Mail, Phone, MapPin, ArrowRight, Github, Linkedin, ExternalLink,
   Sparkles, Gauge, Wrench, Smartphone, Search, FormInput, ShieldCheck,
@@ -54,12 +54,11 @@ function Nav() {
 }
 
 type BubbleEntry = {
-  restX: number;
-  restY: number;
-  targetX: MotionValue<number>;
-  targetY: MotionValue<number>;
-  springX: MotionValue<number>;
-  springY: MotionValue<number>;
+  leftPct: number;
+  topPct: number;
+  element: HTMLDivElement;
+  offsetX: number;
+  offsetY: number;
   radius: number;
 };
 
@@ -76,11 +75,12 @@ function useMouseContext() {
   return ctx;
 }
 
+const ICON_FIELD_RADIUS = 220;
+
 function MagneticBubble({
   label,
   leftPct,
   topPct,
-  containerSize,
   duration,
   delay,
   children,
@@ -88,60 +88,52 @@ function MagneticBubble({
   label: string;
   leftPct: number;
   topPct: number;
-  containerSize: { w: number; h: number };
   duration: number;
   delay: number;
   children: ReactNode;
 }) {
   const { bubbles } = useMouseContext();
-
-  const targetX = useMotionValue(0);
-  const targetY = useMotionValue(0);
-
-  // Snappier but still smooth — higher stiffness with proportional damping = no bounce.
-  const springConfig = { stiffness: 260, damping: 32, mass: 0.9 };
-  const springX = useSpring(targetX, springConfig);
-  const springY = useSpring(targetY, springConfig);
+  const bubbleRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const restX = (leftPct / 100) * containerSize.w;
-    const restY = (topPct / 100) * containerSize.h;
+    if (!bubbleRef.current) return;
     const entry: BubbleEntry = {
-      restX,
-      restY,
-      targetX,
-      targetY,
-      springX,
-      springY,
-      radius: 28, // visual bubble radius in px
+      leftPct,
+      topPct,
+      element: bubbleRef.current,
+      offsetX: 0,
+      offsetY: 0,
+      radius: 30,
     };
     bubbles.current.push(entry);
     return () => {
       bubbles.current = bubbles.current.filter((b) => b !== entry);
     };
-  }, [leftPct, topPct, containerSize.w, containerSize.h, bubbles, targetX, targetY, springX, springY]);
+  }, [leftPct, topPct, bubbles]);
 
   return (
-    <motion.div
+    <div
+      ref={bubbleRef}
       title={label}
       aria-label={label}
-      className="absolute flex size-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center md:size-14"
-      style={{ left: `${leftPct}%`, top: `${topPct}%`, x: springX, y: springY }}
+      className="pointer-events-none absolute"
+      style={{ left: `${leftPct}%`, top: `${topPct}%` }}
     >
       <motion.div
-        className="flex size-full items-center justify-center rounded-full border border-border bg-card/80 shadow-lg backdrop-blur"
-        animate={{ y: [0, -6, 0] }}
+        className="flex size-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border border-border bg-card/80 shadow-lg backdrop-blur md:size-14"
+        animate={{ y: [0, -4, 0] }}
         transition={{ duration, repeat: Infinity, ease: "easeInOut", delay }}
       >
         {children}
       </motion.div>
-    </motion.div>
+    </div>
   );
 }
 
 
 function Hero() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const shouldReduceMotion = useReducedMotion();
   const mouseX = useMotionValue(-9999);
   const mouseY = useMotionValue(-9999);
   const active = useMotionValue(0);
@@ -159,75 +151,146 @@ function Hero() {
     return () => window.removeEventListener("resize", update);
   }, []);
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
-    const rect = containerRef.current?.getBoundingClientRect();
-    if (!rect) return;
-    sizeRef.current = { w: rect.width, h: rect.height };
-    mouseX.set(e.clientX - rect.left);
-    mouseY.set(e.clientY - rect.top);
-    active.set(1);
-  };
+  useEffect(() => {
+    const handlePointerMove = (e: PointerEvent) => {
+      const rect = containerRef.current?.getBoundingClientRect();
+      if (!rect) return;
 
-  const handleMouseLeave = () => active.set(0);
+      sizeRef.current = { w: rect.width, h: rect.height };
+      const localX = e.clientX - rect.left;
+      const localY = e.clientY - rect.top;
+      mouseX.set(localX);
+      mouseY.set(localY);
 
-  // Physics loop: compute target positions for every bubble each frame.
-  // Cursor field starts at CURSOR_RADIUS and falls off smoothly (no hard wall).
-  // Bubbles also softly repel each other so they never overlap.
-  useAnimationFrame(() => {
-    const list = bubbles.current;
-    if (!list.length) return;
-    const isActive = active.get() > 0.5;
-    const mx = mouseX.get();
-    const my = mouseY.get();
+      const withinField =
+        localX >= -ICON_FIELD_RADIUS &&
+        localX <= rect.width + ICON_FIELD_RADIUS &&
+        localY >= -ICON_FIELD_RADIUS &&
+        localY <= rect.height + ICON_FIELD_RADIUS;
 
-    const CURSOR_RADIUS = 150; // invisible field around the cursor
+      active.set(withinField ? 1 : 0);
+    };
 
-    // Compute desired displacement for each bubble.
-    for (const b of list) {
-      let pushX = 0;
-      let pushY = 0;
+    const handlePointerLeave = () => active.set(0);
 
-      // Cursor repulsion: push bubble to the edge of the field, smoothly.
-      if (isActive) {
-        const currentX = b.restX + b.springX.get();
-        const currentY = b.restY + b.springY.get();
-        const dx = currentX - mx;
-        const dy = currentY - my;
-        const dist = Math.hypot(dx, dy) || 0.0001;
-        if (dist < CURSOR_RADIUS) {
-          const nx = dx / dist;
-          const ny = dy / dist;
-          // Place bubble exactly at the edge of the cursor field.
-          const targetRenderX = mx + nx * CURSOR_RADIUS;
-          const targetRenderY = my + ny * CURSOR_RADIUS;
-          pushX += targetRenderX - b.restX;
-          pushY += targetRenderY - b.restY;
+    window.addEventListener("pointermove", handlePointerMove, { passive: true });
+    window.addEventListener("pointerleave", handlePointerLeave);
+    return () => {
+      window.removeEventListener("pointermove", handlePointerMove);
+      window.removeEventListener("pointerleave", handlePointerLeave);
+    };
+  }, [active, mouseX, mouseY]);
+
+  useEffect(() => {
+    let raf = 0;
+    let previous = performance.now();
+
+    const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
+    const smoothstep = (value: number) => {
+      const t = clamp01(value);
+      return t * t * (3 - 2 * t);
+    };
+
+    const tick = (now: number) => {
+      const list = bubbles.current;
+      const dt = Math.min(now - previous, 32) / 1000;
+      previous = now;
+
+      if (list.length) {
+        if (shouldReduceMotion) {
+          for (const b of list) {
+            b.offsetX = 0;
+            b.offsetY = 0;
+            b.element.style.transform = "translate3d(0px, 0px, 0px)";
+          }
+        } else {
+          const isActive = active.get() > 0.5;
+          const mx = mouseX.get();
+          const my = mouseY.get();
+          const { w, h } = sizeRef.current;
+          const coreRadius = 86;
+          const maxShift = 138;
+          const coreShift = 52;
+          const followSpeed = isActive ? 18 : 8;
+          const follow = 1 - Math.exp(-dt * followSpeed);
+
+          const desired = list.map((b) => {
+            const restX = (b.leftPct / 100) * w;
+            const restY = (b.topPct / 100) * h;
+            let dx = 0;
+            let dy = 0;
+
+            if (isActive) {
+              const renderedX = restX + b.offsetX;
+              const renderedY = restY + b.offsetY;
+              let awayX = renderedX - mx;
+              let awayY = renderedY - my;
+              let distance = Math.hypot(awayX, awayY);
+
+              if (distance < 0.001) {
+                const fallbackAngle = Math.atan2(restY - h / 2, restX - w / 2) || -Math.PI / 2;
+                awayX = Math.cos(fallbackAngle);
+                awayY = Math.sin(fallbackAngle);
+                distance = 0.001;
+              }
+
+              const nx = awayX / distance;
+              const ny = awayY / distance;
+              const field = smoothstep((ICON_FIELD_RADIUS - distance) / ICON_FIELD_RADIUS);
+              const core = smoothstep((coreRadius - distance) / coreRadius);
+              const displacement = field * maxShift + core * coreShift;
+
+              dx += nx * displacement;
+              dy += ny * displacement;
+            }
+
+            return { b, restX, restY, dx, dy };
+          });
+
+          for (let pass = 0; pass < 3; pass += 1) {
+            for (let i = 0; i < desired.length; i += 1) {
+              for (let j = i + 1; j < desired.length; j += 1) {
+                const a = desired[i];
+                const b = desired[j];
+                let dx = a.restX + a.dx - (b.restX + b.dx);
+                let dy = a.restY + a.dy - (b.restY + b.dy);
+                let distance = Math.hypot(dx, dy);
+                const minDistance = a.b.radius + b.b.radius + 12;
+
+                if (distance < 0.001) {
+                  const angle = (i / desired.length) * Math.PI * 2;
+                  dx = Math.cos(angle);
+                  dy = Math.sin(angle);
+                  distance = 0.001;
+                }
+
+                if (distance < minDistance) {
+                  const nx = dx / distance;
+                  const ny = dy / distance;
+                  const separation = (minDistance - distance) * 0.5;
+                  a.dx += nx * separation;
+                  a.dy += ny * separation;
+                  b.dx -= nx * separation;
+                  b.dy -= ny * separation;
+                }
+              }
+            }
+          }
+
+          for (const item of desired) {
+            item.b.offsetX += (item.dx - item.b.offsetX) * follow;
+            item.b.offsetY += (item.dy - item.b.offsetY) * follow;
+            item.b.element.style.transform = `translate3d(${item.b.offsetX.toFixed(2)}px, ${item.b.offsetY.toFixed(2)}px, 0px)`;
+          }
         }
       }
 
-      // Inter-bubble repulsion using current rendered positions.
-      const myX = b.restX + b.springX.get();
-      const myY = b.restY + b.springY.get();
-      const minDist = b.radius * 2 + 6;
-      for (const o of list) {
-        if (o === b) continue;
-        const ox = o.restX + o.springX.get();
-        const oy = o.restY + o.springY.get();
-        const dx = myX - ox;
-        const dy = myY - oy;
-        const dist = Math.hypot(dx, dy) || 0.0001;
-        if (dist < minDist) {
-          const overlap = (minDist - dist) / minDist;
-          const falloff = overlap * overlap;
-          pushX += (dx / dist) * 18 * falloff;
-          pushY += (dy / dist) * 18 * falloff;
-        }
-      }
+      raf = requestAnimationFrame(tick);
+    };
 
-      b.targetX.set(pushX);
-      b.targetY.set(pushY);
-    }
-  });
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [active, mouseX, mouseY, shouldReduceMotion]);
 
   const ctxValue = useMemo(
     () => ({ mouseX, mouseY, active, bubbles }),
@@ -313,8 +376,6 @@ function Hero() {
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.8, delay: 0.2 }}
           className="relative mx-auto aspect-square w-72 md:w-80"
-          onMouseMove={handleMouseMove}
-          onMouseLeave={handleMouseLeave}
         >
           <MouseContext.Provider value={ctxValue}>
             <motion.div
@@ -352,8 +413,7 @@ function Hero() {
                   label={c.label}
                   leftPct={leftPct}
                   topPct={topPct}
-                  containerSize={sizeRef.current}
-                  duration={4 + (i % 3)}
+                    duration={7 + (i % 3)}
                   delay={i * 0.25}
                 >
                   <img
