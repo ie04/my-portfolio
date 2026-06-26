@@ -243,15 +243,15 @@ export function CertConstellation({ className }: Props) {
                 const driftDur = 6 + (n.driftSeed % 5);
                 const icon = n.icon ?? CERT_ICONS[n.id];
                 const selectedOpacity = isSelected ? 1 : 0;
+                const nodeOpacity = selected ? selectedOpacity : dim ? 0.35 : 1;
                 const nodeAnim = selected
-                  ? { x: 0, y: 0, scale: isSelected ? 0.72 : 0.82, opacity: selectedOpacity }
+                  ? { x: 0, y: 0, scale: isSelected ? 0.72 : 0.82 }
                   : reduce
-                    ? { x: 0, y: 0, scale: 1, opacity: dim ? 0.35 : 1 }
+                    ? { x: 0, y: 0, scale: 1 }
                     : {
                         x: isHovered ? 0 : [0, driftX, 0, -driftX, 0],
                         y: isHovered ? 0 : [0, driftY, 0, -driftY, 0],
                         scale: 1,
-                        opacity: dim ? 0.35 : 1,
                       };
 
                 return (
@@ -263,6 +263,7 @@ export function CertConstellation({ className }: Props) {
                       transformBox: "fill-box",
                       transformOrigin: "center",
                     }}
+                    opacity={nodeOpacity}
                     animate={nodeAnim}
                     transition={
                       reduce
