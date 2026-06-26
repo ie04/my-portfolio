@@ -19,8 +19,10 @@ export type Cert = {
   short: string;
   issuer: string;
   family: CertFamily;
+  description: string;
+  awarded: string;
   icon?: string;
-  url?: string;
+  verifyUrl?: string;
 };
 
 function imgSrc(mod: string | { src: string }): string {
@@ -54,18 +56,126 @@ export const FAMILY_META: Record<
 };
 
 export const CERTS: Cert[] = [
-  { id: "aws-ccp",     name: "AWS Certified Cloud Practitioner",          short: "CCP",     issuer: "Amazon Web Services", family: "aws" },
-  { id: "aws-saa",     name: "AWS Certified Solutions Architect — Associate", short: "SAA", issuer: "Amazon Web Services", family: "aws" },
-  { id: "comptia-a",   name: "CompTIA A+",                                  short: "A+",      issuer: "CompTIA",             family: "comptia" },
-  { id: "comptia-net", name: "CompTIA Network+",                            short: "Net+",    issuer: "CompTIA",             family: "comptia" },
-  { id: "comptia-sec", name: "CompTIA Security+",                           short: "Sec+",    issuer: "CompTIA",             family: "comptia" },
-  { id: "comptia-cld", name: "CompTIA Cloud+",                              short: "Cloud+",  issuer: "CompTIA",             family: "comptia" },
-  { id: "comptia-prj", name: "CompTIA Project+",                            short: "Prj+",    issuer: "CompTIA",             family: "comptia" },
-  { id: "comptia-cios",name: "CompTIA CIOS — IT Operations Specialist",    short: "CIOS",    issuer: "CompTIA",             family: "comptia" },
-  { id: "comptia-csis",name: "CompTIA CSIS — Secure Infrastructure Specialist", short: "CSIS", issuer: "CompTIA",         family: "comptia" },
-  { id: "itil",        name: "ITIL Foundation",                             short: "ITIL Foundation",     issuer: "PeopleCert / Axelos", family: "itil" },
-  { id: "lpi",         name: "LPI Linux Essentials",                        short: "LPI Linux Essentials", issuer: "Linux Professional Institute", family: "lpi" },
-  { id: "rx-tech",     name: "Florida State Pharmacy Technician",           short: "Pharm Tech License",   issuer: "Florida Board of Pharmacy", family: "other" },
+  {
+    id: "aws-ccp",
+    name: "AWS Certified Cloud Practitioner",
+    short: "CCP",
+    issuer: "Amazon Web Services",
+    family: "aws",
+    description: "Foundational AWS cloud fluency across core services, billing, security, and architectural basics.",
+    awarded: "July 18, 2025",
+    verifyUrl: "https://www.credly.com/badges/3edbcaa0-ad6e-4176-96ca-c323dc02681e/public_url",
+  },
+  {
+    id: "aws-saa",
+    name: "AWS Certified Solutions Architect — Associate",
+    short: "SAA",
+    issuer: "Amazon Web Services",
+    family: "aws",
+    description: "Validates the ability to design resilient, secure, performant, and cost-aware AWS architectures.",
+    awarded: "May 27, 2026",
+    verifyUrl: "https://www.credly.com/badges/784bd8a6-505b-489f-b366-dfca6968de58/public_url",
+  },
+  {
+    id: "comptia-a",
+    name: "CompTIA A+",
+    short: "A+",
+    issuer: "CompTIA",
+    family: "comptia",
+    description: "Core IT support skills spanning hardware, operating systems, troubleshooting, networking, and security.",
+    awarded: "September 22, 2025",
+    verifyUrl: "https://www.credly.com/badges/d82a3221-76f6-42e4-baa5-03bdfe17e66d/public_url",
+  },
+  {
+    id: "comptia-net",
+    name: "CompTIA Network+",
+    short: "Net+",
+    issuer: "CompTIA",
+    family: "comptia",
+    description: "Networking fundamentals for configuration, operations, troubleshooting, infrastructure, and security.",
+    awarded: "November 25, 2025",
+    verifyUrl: "https://www.credly.com/badges/5f85b375-023c-46ce-903a-265bb6b7994d/public_url",
+  },
+  {
+    id: "comptia-sec",
+    name: "CompTIA Security+",
+    short: "Sec+",
+    issuer: "CompTIA",
+    family: "comptia",
+    description: "Baseline cybersecurity knowledge across threats, architecture, operations, governance, and risk.",
+    awarded: "December 2, 2025",
+    verifyUrl: "https://www.credly.com/badges/b741d219-0c71-4f91-8bd9-6a4c7f0d3c1b/public_url",
+  },
+  {
+    id: "comptia-cld",
+    name: "CompTIA Cloud+",
+    short: "Cloud+",
+    issuer: "CompTIA",
+    family: "comptia",
+    description: "Cloud infrastructure skills covering deployment, operations, security, maintenance, and troubleshooting.",
+    awarded: "April 11, 2026",
+    verifyUrl: "https://www.credly.com/badges/bc7598a2-9e74-4481-81bb-6b43d15bffb3/public_url",
+  },
+  {
+    id: "comptia-prj",
+    name: "CompTIA Project+",
+    short: "Prj+",
+    issuer: "CompTIA",
+    family: "comptia",
+    description: "Project coordination fundamentals including scope, schedules, communication, risk, and documentation.",
+    awarded: "May 6, 2026",
+    verifyUrl: "https://www.credly.com/badges/c9e6eaa5-e0e1-4dae-bf02-a155a6088590/public_url",
+  },
+  {
+    id: "comptia-cios",
+    name: "CompTIA CIOS — IT Operations Specialist",
+    short: "CIOS",
+    issuer: "CompTIA",
+    family: "comptia",
+    description: "Stackable CompTIA credential recognizing combined A+ and Network+ operations capability.",
+    awarded: "November 25, 2025",
+    verifyUrl: "https://www.credly.com/badges/2cbfba22-addd-4261-813c-4889156e26cc/public_url",
+  },
+  {
+    id: "comptia-csis",
+    name: "CompTIA CSIS — Secure Infrastructure Specialist",
+    short: "CSIS",
+    issuer: "CompTIA",
+    family: "comptia",
+    description: "Stackable CompTIA credential recognizing A+, Network+, and Security+ infrastructure skills.",
+    awarded: "December 2, 2025",
+    verifyUrl: "https://www.credly.com/badges/3bf96118-5dd9-474f-8075-2c1ec80c45fc/public_url",
+  },
+  {
+    id: "itil",
+    name: "ITIL Foundation",
+    short: "ITIL Foundation",
+    issuer: "PeopleCert / Axelos",
+    family: "itil",
+    description: "Service management foundations for delivering, supporting, and improving IT-enabled services.",
+    awarded: "Awarded date available on verification page",
+    verifyUrl: "https://www.credly.com/org/peoplecert/badge/itil-4-foundation",
+  },
+  {
+    id: "lpi",
+    name: "LPI Linux Essentials",
+    short: "LPI Linux Essentials",
+    issuer: "Linux Professional Institute",
+    family: "lpi",
+    description: "Linux command line, open source concepts, system basics, security, permissions, and scripting fundamentals.",
+    awarded: "Awarded date available on verification page",
+    verifyUrl: "https://www.credly.com/org/linux-professional-institute/badge/linux-essentials-certificate",
+  },
+  {
+    id: "rx-tech",
+    name: "Florida State Pharmacy Technician",
+    short: "Pharm Tech License",
+    issuer: "Florida Board of Pharmacy",
+    family: "other",
+    description: "Florida pharmacy technician registration for supporting licensed pharmacy operations.",
+    awarded: "Awarded date available on verification page",
+    verifyUrl: "https://mqa-internet.doh.state.fl.us/MQASearchServices/HealthCareProviders",
+  },
 ];
 
 // Cross-family suggestive edges

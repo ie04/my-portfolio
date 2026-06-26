@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect, useRef } from "react";
-import { motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import {
   CERTS,
   CERT_ICONS,
@@ -27,6 +27,7 @@ export function CertConstellation({ className }: Props) {
   }, [nodes]);
 
   const [hoverId, setHoverId] = useState<string | null>(null);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 800, h: 600 });
 
@@ -42,8 +43,20 @@ export function CertConstellation({ className }: Props) {
     return () => ro.disconnect();
   }, []);
 
-  const hovered = hoverId ? byId.get(hoverId) ?? null : null;
-  const effectiveFamily: CertFamily | null = hovered?.family ?? null;
+  useEffect(() => {
+    if (!selectedId) return;
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setSelectedId(null);
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [selectedId]);
+
+  const hovered = hoverId && !selectedId ? byId.get(hoverId) ?? null : null;
+  const selected = selectedId ? byId.get(selectedId) ?? null : null;
+  const effectiveFamily: CertFamily | null = selected?.family ?? hovered?.family ?? null;
 
   const intraEdges = useMemo(() => {
     return nodes
@@ -207,7 +220,8 @@ export function CertConstellation({ className }: Props) {
           {/* Nodes */}
           <g>
             {nodes.map((n) => {
-              const isHovered = hoverId === n.id;
+              const isHovered = hoverId === n.id && !selected;
+              const isSelected = selectedId === n.id;
               const famActive = effectiveFamily === n.family;
               const dim = effectiveFamily !== null && !famActive;
               const color = FAMILY_META[n.family].colorVar;
@@ -218,39 +232,52 @@ export function CertConstellation({ className }: Props) {
               const driftY = ((n.driftSeed * 1.7) % 7) - 3;
               const driftDur = 6 + (n.driftSeed % 5);
               const icon = n.icon ?? CERT_ICONS[n.id];
-              const nodeAnim = reduce
-                ? { x: 0, y: 0 }
-                : {
-                    x: [0, driftX, 0, -driftX, 0],
-                    y: [0, driftY, 0, -driftY, 0],
-                  };
+              const nodeAnim = isSelected
+                ? { x: 400 - n.x, y: 180 - n.y, scale: 1.22, opacity: 0 }
+                : reduce
+                  ? { x: 0, y: 0, scale: 1, opacity: dim ? 0.35 : 1 }
+                  : {
+                      x: isHovered ? 0 : [0, driftX, 0, -driftX, 0],
+                      y: isHovered ? 0 : [0, driftY, 0, -driftY, 0],
+                      scale: 1,
+                      opacity: dim ? 0.35 : 1,
+                    };
 
               return (
                 <motion.g
                   key={n.id}
-                  style={{ cursor: n.url ? "pointer" : "default" }}
-                  animate={isHovered ? { x: 0, y: 0 } : nodeAnim}
+                  style={{
+                    cursor: "pointer",
+                    outline: "none",
+                    transformBox: "fill-box",
+                    transformOrigin: "center",
+                  }}
+                  animate={nodeAnim}
                   transition={
                     reduce
                       ? undefined
-                      : { duration: driftDur, repeat: Infinity, ease: "easeInOut" }
+                      : isSelected
+                        ? { duration: 0.45, ease: [0.22, 1, 0.36, 1] }
+                        : {
+                            duration: isHovered ? 0.2 : driftDur,
+                            repeat: isHovered ? 0 : Infinity,
+                            ease: "easeInOut",
+                          }
                   }
                   onMouseEnter={() => setHoverId(n.id)}
+                  onMouseDown={(event) => event.preventDefault()}
                   onFocus={() => setHoverId(n.id)}
                   onBlur={() => setHoverId(null)}
                   tabIndex={0}
-                  role={n.url ? "button" : "img"}
-                  aria-label={`${n.name} by ${n.issuer}`}
+                  role="button"
+                  aria-label={`Open details for ${n.name} by ${n.issuer}`}
                   onKeyDown={(e) => {
-                    if ((e.key === "Enter" || e.key === " ") && n.url) {
+                    if (e.key === "Enter" || e.key === " ") {
                       e.preventDefault();
-                      window.open(n.url, "_blank", "noopener,noreferrer");
+                      setSelectedId(n.id);
                     }
                   }}
-                  onClick={() => {
-                    if (n.url) window.open(n.url, "_blank", "noopener,noreferrer");
-                  }}
-                  opacity={dim ? 0.35 : 1}
+                  onClick={() => setSelectedId(n.id)}
                 >
                   {/* Ambient halo */}
                   {!reduce && (
@@ -324,12 +351,99 @@ export function CertConstellation({ className }: Props) {
                 {tooltip.cert.name}
               </div>
               <div className="mt-0.5 opacity-70">{tooltip.cert.issuer}</div>
-              {tooltip.cert.url && (
-                <div className="mt-1 text-[10px] opacity-80">Click to verify →</div>
+              {tooltip.cert.verifyUrl && (
+                <div className="mt-1 text-[10px] opacity-80">Click for details</div>
               )}
             </div>
           </div>
         )}
+
+        <AnimatePresence>
+          {selected && (
+            <motion.div
+              className="fixed inset-0 z-50 grid place-items-center bg-background/70 px-4 py-8 backdrop-blur-md"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedId(null)}
+            >
+              <motion.div
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby="cert-dialog-title"
+                className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-border bg-card/95 p-6 text-card-foreground shadow-2xl"
+                initial={reduce ? { opacity: 0 } : { opacity: 0, y: 28, scale: 0.94 }}
+                animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
+                exit={reduce ? { opacity: 0 } : { opacity: 0, y: 18, scale: 0.96 }}
+                transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                onClick={(event) => event.stopPropagation()}
+              >
+                <button
+                  type="button"
+                  aria-label="Close certification details"
+                  className="absolute right-4 top-4 grid size-8 place-items-center rounded-full border border-border bg-background/70 text-muted-foreground transition hover:bg-primary/10 hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  onClick={() => setSelectedId(null)}
+                >
+                  ×
+                </button>
+
+                <div className="flex items-start gap-5 pr-10">
+                  <motion.div
+                    className="grid size-24 shrink-0 place-items-center"
+                    layoutId={`cert-${selected.id}`}
+                    initial={reduce ? false : { y: -24, scale: 0.82 }}
+                    animate={reduce ? undefined : { y: 0, scale: 1 }}
+                    transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                  >
+                    <img
+                      src={selected.icon ?? CERT_ICONS[selected.id]}
+                      alt={`${selected.name} badge`}
+                      className="h-full w-full object-contain"
+                    />
+                  </motion.div>
+
+                  <div className="min-w-0">
+                    <div
+                      className="mb-2 inline-flex rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-wider"
+                      style={{
+                        background: FAMILY_META[selected.family].colorVar,
+                        color: "var(--constellation-bg)",
+                      }}
+                    >
+                      {FAMILY_META[selected.family].label}
+                    </div>
+                    <h3 id="cert-dialog-title" className="text-xl font-semibold leading-tight">
+                      {selected.name}
+                    </h3>
+                    <p className="mt-1 text-sm text-muted-foreground">{selected.issuer}</p>
+                  </div>
+                </div>
+
+                <div className="mt-6 space-y-4">
+                  <p className="text-sm leading-6 text-muted-foreground">{selected.description}</p>
+
+                  <div className="rounded-xl border border-border bg-background/45 px-4 py-3">
+                    <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                      Awarded
+                    </div>
+                    <div className="mt-1 text-sm text-foreground">{selected.awarded}</div>
+                  </div>
+
+                  {selected.verifyUrl && (
+                    <a
+                      href={selected.verifyUrl}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex text-sm font-medium text-primary underline-offset-4 transition hover:text-foreground hover:underline"
+                    >
+                      Click Here to Verify
+                    </a>
+                  )}
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );
