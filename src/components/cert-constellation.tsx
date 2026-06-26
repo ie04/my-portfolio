@@ -123,7 +123,7 @@ export function CertConstellation({ className }: Props) {
                     r={s.r}
                     fill="var(--constellation-star)"
                     initial={{ opacity: s.o }}
-                    animate={{ opacity: selected ? s.o * 0.18 : [s.o, s.o * 0.3, s.o] }}
+                    animate={{ opacity: selected ? 0 : [s.o, s.o * 0.3, s.o] }}
                     transition={
                       selected
                         ? { duration: 0.7, ease: "easeOut" }
@@ -148,7 +148,7 @@ export function CertConstellation({ className }: Props) {
                     stroke="var(--constellation-edge)"
                     strokeWidth={0.6}
                     strokeDasharray="3 6"
-                    opacity={selected ? 0.08 : dim ? 0.15 : 0.35}
+                    opacity={selected ? 0 : dim ? 0.15 : 0.35}
                     style={{ transition: "opacity 500ms" }}
                   />
                 );
@@ -169,7 +169,7 @@ export function CertConstellation({ className }: Props) {
                     y2={e.y2}
                     stroke={active ? FAMILY_META[e.family].colorVar : "var(--constellation-edge)"}
                     strokeWidth={active ? 1.4 : 0.9}
-                    opacity={selected ? (active ? 0.34 : 0.05) : dim ? 0.18 : active ? 0.9 : 0.55}
+                    opacity={selected ? 0 : dim ? 0.18 : active ? 0.9 : 0.55}
                     style={{ transition: "opacity 500ms, stroke-width 300ms" }}
                   />
                 );
@@ -188,7 +188,7 @@ export function CertConstellation({ className }: Props) {
                     cy={a.y}
                     r={active ? 4 : 2.4}
                     fill={FAMILY_META[fam].colorVar}
-                    opacity={selected ? (active ? 0.55 : 0.08) : active ? 0.8 : 0.35}
+                    opacity={selected ? 0 : active ? 0.8 : 0.35}
                     style={{ transition: "all 500ms" }}
                   />
                 );
@@ -245,13 +245,14 @@ export function CertConstellation({ className }: Props) {
                 const selectedOpacity = isSelected ? 1 : 0;
                 const nodeOpacity = selected ? selectedOpacity : dim ? 0.35 : 1;
                 const nodeAnim = selected
-                  ? { x: 0, y: 0, scale: isSelected ? 0.72 : 0.82 }
+                  ? { x: 0, y: 0, scale: isSelected ? 0.72 : 0.82, opacity: nodeOpacity }
                   : reduce
-                    ? { x: 0, y: 0, scale: 1 }
+                    ? { x: 0, y: 0, scale: 1, opacity: nodeOpacity }
                     : {
                         x: isHovered ? 0 : [0, driftX, 0, -driftX, 0],
                         y: isHovered ? 0 : [0, driftY, 0, -driftY, 0],
                         scale: 1,
+                        opacity: nodeOpacity,
                       };
 
                 return (
@@ -263,7 +264,6 @@ export function CertConstellation({ className }: Props) {
                       transformBox: "fill-box",
                       transformOrigin: "center",
                     }}
-                    opacity={nodeOpacity}
                     animate={nodeAnim}
                     transition={
                       reduce
@@ -271,9 +271,18 @@ export function CertConstellation({ className }: Props) {
                         : selected
                           ? { duration: 0.75, ease: [0.16, 1, 0.3, 1] }
                           : {
-                              duration: isHovered ? 0.2 : driftDur,
-                              repeat: isHovered ? 0 : Infinity,
-                              ease: "easeInOut",
+                              x: {
+                                duration: driftDur,
+                                repeat: Infinity,
+                                ease: "easeInOut",
+                              },
+                              y: {
+                                duration: driftDur,
+                                repeat: Infinity,
+                                ease: "easeInOut",
+                              },
+                              scale: { duration: 0.2, ease: "easeInOut" },
+                              opacity: { duration: 0.15, ease: "easeOut" },
                             }
                     }
                     onMouseEnter={() => setHoverId(n.id)}
@@ -400,7 +409,7 @@ export function CertConstellation({ className }: Props) {
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="cert-dialog-title"
-                className="relative max-h-full w-full max-w-lg overflow-hidden rounded-2xl border border-white/15 bg-card/85 text-card-foreground shadow-2xl shadow-black/45 backdrop-blur-xl"
+                className="relative max-h-full w-full max-w-lg overflow-hidden rounded-2xl border border-white/15 bg-card/92 text-card-foreground shadow-2xl shadow-black/45 backdrop-blur-xl"
                 initial={
                   reduce
                     ? { opacity: 0 }
@@ -473,7 +482,7 @@ export function CertConstellation({ className }: Props) {
                     <div className="mt-6 space-y-4">
                       <p className="text-sm leading-6 text-muted-foreground">{selected.description}</p>
 
-                      <div className="rounded-xl border border-white/10 bg-background/70 px-4 py-3 backdrop-blur">
+                      <div className="rounded-xl border border-white/10 bg-background/80 px-4 py-3 backdrop-blur">
                         <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                           Awarded
                         </div>
