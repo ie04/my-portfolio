@@ -256,36 +256,10 @@ export function CertConstellation({ className }: Props) {
                       };
 
                 return (
-                  <motion.g
+                  <g
                     key={n.id}
                     transform={`translate(${n.x} ${n.y})`}
-                    style={{
-                      cursor: "pointer",
-                      outline: "none",
-                      transformBox: "fill-box",
-                      transformOrigin: "center",
-                    }}
-                    animate={nodeAnim}
-                    transition={
-                      reduce
-                        ? undefined
-                        : selected
-                          ? { duration: 0.75, ease: [0.16, 1, 0.3, 1] }
-                          : {
-                              x: {
-                                duration: driftDur,
-                                repeat: Infinity,
-                                ease: "easeInOut",
-                              },
-                              y: {
-                                duration: driftDur,
-                                repeat: Infinity,
-                                ease: "easeInOut",
-                              },
-                              scale: { duration: 0.2, ease: "easeInOut" },
-                              opacity: { duration: 0.15, ease: "easeOut" },
-                            }
-                    }
+                    style={{ cursor: "pointer", outline: "none" }}
                     onMouseEnter={() => setHoverId(n.id)}
                     onMouseDown={(event) => event.preventDefault()}
                     onFocus={() => setHoverId(n.id)}
@@ -301,52 +275,80 @@ export function CertConstellation({ className }: Props) {
                     }}
                     onClick={() => setSelectedId(n.id)}
                   >
-                    {/* Ambient halo */}
-                    {!reduce && (
-                      <motion.circle
-                        cx={0}
-                        cy={0}
-                        r={half * 1.25}
-                        fill={color}
-                        opacity={0.04}
-                        animate={
-                          selected
-                            ? { opacity: 0, scale: 1 }
-                            : { opacity: [0.025, 0.07, 0.025], scale: [1, 1.08, 1] }
-                        }
-                        transition={
-                          selected
-                            ? { duration: 0.7, ease: "easeOut" }
-                            : { duration: 4 + (n.driftSeed % 3), repeat: Infinity, ease: "easeInOut" }
-                        }
-                        style={{ transformOrigin: "0px 0px" }}
-                      />
-                    )}
-                    {/* The cert icon image */}
-                    {icon && (
-                      <image
-                        href={icon}
-                        x={-half}
-                        y={-half}
-                        width={size}
-                        height={size}
-                        preserveAspectRatio="xMidYMid meet"
-                        style={{ transition: "width 300ms, height 300ms, x 300ms, y 300ms" }}
-                      />
-                    )}
-                    {/* Short label */}
-                    <text
-                      x={0}
-                      y={half + 22}
-                      textAnchor="middle"
-                      fontSize="10"
-                      fill="var(--constellation-label)"
-                      opacity={selected ? 0 : isHovered ? 1 : 0.7}
-                      style={{ pointerEvents: "none", fontWeight: 500, letterSpacing: "0.05em" }}
+                    <motion.g
+                      style={{
+                        transformBox: "fill-box",
+                        transformOrigin: "center",
+                      }}
+                      animate={nodeAnim}
+                      transition={
+                        reduce
+                          ? undefined
+                          : selected
+                            ? { duration: 0.75, ease: [0.16, 1, 0.3, 1] }
+                            : {
+                                x: {
+                                  duration: driftDur,
+                                  repeat: Infinity,
+                                  ease: "easeInOut",
+                                },
+                                y: {
+                                  duration: driftDur,
+                                  repeat: Infinity,
+                                  ease: "easeInOut",
+                                },
+                                scale: { duration: 0.2, ease: "easeInOut" },
+                                opacity: { duration: 0.15, ease: "easeOut" },
+                              }
+                      }
                     >
-                      {n.short.toUpperCase()}
-                    </text>
-                  </motion.g>
+                      {/* Ambient halo */}
+                      {!reduce && (
+                        <motion.circle
+                          cx={0}
+                          cy={0}
+                          r={half * 1.25}
+                          fill={color}
+                          opacity={0.04}
+                          animate={
+                            selected
+                              ? { opacity: 0, scale: 1 }
+                              : { opacity: [0.025, 0.07, 0.025], scale: [1, 1.08, 1] }
+                          }
+                          transition={
+                            selected
+                              ? { duration: 0.7, ease: "easeOut" }
+                              : { duration: 4 + (n.driftSeed % 3), repeat: Infinity, ease: "easeInOut" }
+                          }
+                          style={{ transformOrigin: "0px 0px" }}
+                        />
+                      )}
+                      {/* The cert icon image */}
+                      {icon && (
+                        <image
+                          href={icon}
+                          x={-half}
+                          y={-half}
+                          width={size}
+                          height={size}
+                          preserveAspectRatio="xMidYMid meet"
+                          style={{ transition: "width 300ms, height 300ms, x 300ms, y 300ms" }}
+                        />
+                      )}
+                      {/* Short label */}
+                      <text
+                        x={0}
+                        y={half + 22}
+                        textAnchor="middle"
+                        fontSize="10"
+                        fill="var(--constellation-label)"
+                        opacity={selected ? 0 : isHovered ? 1 : 0.7}
+                        style={{ pointerEvents: "none", fontWeight: 500, letterSpacing: "0.05em" }}
+                      >
+                        {n.short.toUpperCase()}
+                      </text>
+                    </motion.g>
+                  </g>
                 );
               })}
             </g>
