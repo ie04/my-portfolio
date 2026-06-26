@@ -87,14 +87,9 @@ export function CertConstellation({ className }: Props) {
         return { x: px, y: py, cert: hovered };
       })()
     : null;
-  const sceneScale = selected && !reduce ? 3.15 : 1;
-  const sceneTransform = selected
-    ? {
-        x: 400 - selected.x * sceneScale,
-        y: 300 - selected.y * sceneScale,
-        scale: sceneScale,
-      }
-    : { x: 0, y: 0, scale: 1 };
+  const cameraViewBox = selected
+    ? `${selected.x - 130} ${selected.y - 97.5} 260 195`
+    : "0 0 800 600";
 
   return (
     <div className={className}>
@@ -104,19 +99,17 @@ export function CertConstellation({ className }: Props) {
         style={{ aspectRatio: "4 / 3" }}
         onMouseLeave={() => setHoverId(null)}
       >
-        <svg
+        <motion.svg
           viewBox="0 0 800 600"
+          animate={{ viewBox: cameraViewBox }}
+          transition={{ duration: reduce ? 0 : 1, ease: [0.16, 1, 0.3, 1] }}
           preserveAspectRatio="xMidYMid meet"
           className="absolute inset-0 h-full w-full"
         >
           <defs>
           </defs>
 
-          <motion.g
-            animate={sceneTransform}
-            transition={{ duration: reduce ? 0 : 0.95, ease: [0.16, 1, 0.3, 1] }}
-            style={{ transformBox: "view-box", transformOrigin: "0 0" }}
-          >
+          <g>
             {/* Background stars */}
             <g>
               {stars.map((s, i) =>
@@ -346,8 +339,8 @@ export function CertConstellation({ className }: Props) {
                 );
               })}
             </g>
-          </motion.g>
-        </svg>
+          </g>
+        </motion.svg>
 
 
         {/* Tooltip */}
