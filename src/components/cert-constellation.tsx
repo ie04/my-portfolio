@@ -56,7 +56,7 @@ export function CertConstellation({ className }: Props) {
 
   const hovered = hoverId && !selectedId ? byId.get(hoverId) ?? null : null;
   const selected = selectedId ? byId.get(selectedId) ?? null : null;
-  const effectiveFamily: CertFamily | null = selected?.family ?? hovered?.family ?? null;
+  const effectiveFamily: CertFamily | null = selected?.family ?? null;
 
   const intraEdges = useMemo(() => {
     return nodes
@@ -230,7 +230,7 @@ export function CertConstellation({ className }: Props) {
             {/* Nodes */}
             <g>
               {nodes.map((n) => {
-                const isHovered = hoverId === n.id && !selected;
+                const isHovered = false;
                 const isSelected = selectedId === n.id;
                 const famActive = effectiveFamily === n.family;
                 const dim = effectiveFamily !== null && !famActive;
@@ -399,7 +399,7 @@ export function CertConstellation({ className }: Props) {
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="cert-dialog-title"
-                className="relative max-h-full w-full max-w-lg overflow-hidden rounded-2xl text-card-foreground shadow-2xl"
+                className="relative max-h-full w-full max-w-lg overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-2xl"
                 initial={
                   reduce
                     ? { opacity: 0 }
@@ -427,7 +427,6 @@ export function CertConstellation({ className }: Props) {
                 transition={{ duration: reduce ? 0 : 0.62, delay: reduce ? 0 : 0.58, ease: [0.16, 1, 0.3, 1] }}
                 onClick={(event) => event.stopPropagation()}
               >
-                <div className="absolute inset-0 rounded-2xl border border-border bg-card" />
                 <div
                   className="absolute inset-x-0 top-0 h-px origin-left"
                   style={{ background: FAMILY_META[selected.family].colorVar }}
