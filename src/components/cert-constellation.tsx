@@ -234,7 +234,6 @@ export function CertConstellation({ className }: Props) {
                 const isSelected = selectedId === n.id;
                 const famActive = effectiveFamily === n.family;
                 const dim = effectiveFamily !== null && !famActive;
-                const color = FAMILY_META[n.family].colorVar;
                 const baseSize = 90;
                 const size = isHovered ? baseSize * 1.3 : baseSize;
                 const half = size / 2;
@@ -299,30 +298,9 @@ export function CertConstellation({ className }: Props) {
                                 },
                                 scale: { duration: 0.2, ease: "easeInOut" },
                                 opacity: { duration: 0.15, ease: "easeOut" },
-                              }
+                          }
                       }
                     >
-                      {/* Ambient halo */}
-                      {!reduce && (
-                        <motion.circle
-                          cx={0}
-                          cy={0}
-                          r={half * 1.25}
-                          fill={color}
-                          opacity={0.04}
-                          animate={
-                            selected
-                              ? { opacity: 0, scale: 1 }
-                              : { opacity: [0.025, 0.07, 0.025], scale: [1, 1.08, 1] }
-                          }
-                          transition={
-                            selected
-                              ? { duration: 0.7, ease: "easeOut" }
-                              : { duration: 4 + (n.driftSeed % 3), repeat: Infinity, ease: "easeInOut" }
-                          }
-                          style={{ transformOrigin: "0px 0px" }}
-                        />
-                      )}
                       {/* The cert icon image */}
                       {icon && (
                         <image
@@ -335,19 +313,71 @@ export function CertConstellation({ className }: Props) {
                           style={{ transition: "width 300ms, height 300ms, x 300ms, y 300ms" }}
                         />
                       )}
-                      {/* Short label */}
-                      <text
-                        x={0}
-                        y={half + 22}
-                        textAnchor="middle"
-                        fontSize="10"
-                        fill="var(--constellation-label)"
-                        opacity={selected ? 0 : isHovered ? 1 : 0.7}
-                        style={{ pointerEvents: "none", fontWeight: 500, letterSpacing: "0.05em" }}
-                      >
-                        {n.short.toUpperCase()}
-                      </text>
                     </motion.g>
+                  </g>
+                );
+              })}
+            </g>
+            {/* Node labels are painted after every icon so drifting badges cannot cover them. */}
+            <g style={{ pointerEvents: "none" }}>
+              {nodes.map((n) => {
+                const isSelected = selectedId === n.id;
+                const famActive = effectiveFamily === n.family;
+                const dim = effectiveFamily !== null && !famActive;
+                const baseSize = 90;
+                const half = baseSize / 2;
+                const driftX = (n.driftSeed % 7) - 3;
+                const driftY = ((n.driftSeed * 1.7) % 7) - 3;
+                const driftDur = 6 + (n.driftSeed % 5);
+                const selectedOpacity = isSelected ? 1 : 0;
+                const labelOpacity = selected ? selectedOpacity : dim ? 0.45 : 0.72;
+                const labelAnim = selected
+                  ? { x: 0, y: 0, scale: isSelected ? 0.72 : 0.82, opacity: 0 }
+                  : reduce
+                    ? { x: 0, y: 0, scale: 1, opacity: labelOpacity }
+                    : {
+                        x: [0, driftX, 0, -driftX, 0],
+                        y: [0, driftY, 0, -driftY, 0],
+                        scale: 1,
+                        opacity: labelOpacity,
+                      };
+
+                return (
+                  <g key={`${n.id}-label`} transform={`translate(${n.x} ${n.y})`}>
+                    <motion.text
+                      x={0}
+                      y={half + 22}
+                      textAnchor="middle"
+                      fontSize="10"
+                      fill="var(--constellation-label)"
+                      style={{ fontWeight: 500, letterSpacing: "0.05em", paintOrder: "stroke" }}
+                      stroke="var(--constellation-bg)"
+                      strokeWidth="3"
+                      strokeLinejoin="round"
+                      animate={labelAnim}
+                      transition={
+                        reduce
+                          ? undefined
+                          : selected
+                            ? { duration: 0.45, ease: "easeOut" }
+                            : {
+                                x: {
+                                  duration: driftDur,
+                                  repeat: Infinity,
+                                  ease: "easeInOut",
+                                },
+                                y: {
+                                  duration: driftDur,
+                                  repeat: Infinity,
+                                  ease: "easeInOut",
+                                },
+                                scale: { duration: 0.2, ease: "easeInOut" },
+                                opacity: { duration: 0.15, ease: "easeOut" },
+                              }
+                      }
+                    >
+                      {n.short.toUpperCase()}
+                    </motion.text>
                   </g>
                 );
               })}
