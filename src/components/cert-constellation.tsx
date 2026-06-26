@@ -15,10 +15,54 @@ type Props = {
   className?: string;
 };
 
+function estimateLabelWidth(label: string) {
+  return Math.min(112, Math.max(28, label.length * 6.8));
+}
+
+function labelRepelOffset(node: Positioned, nodes: Positioned[]) {
+  const baseLabelY = 67;
+  const labelHalfWidth = estimateLabelWidth(node.short) / 2;
+  const iconHalf = 45;
+  const driftBuffer = 10;
+  let x = 0;
+  let y = 0;
+
+  for (let pass = 0; pass < 2; pass += 1) {
+    for (const other of nodes) {
+      if (other.id === node.id) continue;
+
+      const labelX = node.x + x;
+      const labelY = node.y + baseLabelY + y - 4;
+      const dx = labelX - other.x;
+      const dy = labelY - other.y;
+      const limitX = iconHalf + labelHalfWidth + driftBuffer;
+      const limitY = iconHalf + 10 + driftBuffer;
+
+      if (Math.abs(dx) >= limitX || Math.abs(dy) >= limitY) continue;
+
+      const side = dx === 0 ? (node.driftSeed % 2 > 1 ? 1 : -1) : Math.sign(dx);
+      const verticalSide = dy === 0 ? 1 : Math.sign(dy);
+      const targetX = other.x + side * (iconHalf + labelHalfWidth + driftBuffer + 6) - node.x;
+      x += (targetX - x) * 0.82;
+      y += verticalSide * Math.min(8, (limitY - Math.abs(dy)) * 0.12);
+    }
+  }
+
+  return {
+    x: Math.max(-74, Math.min(74, x)),
+    y: Math.max(-10, Math.min(16, y)),
+  };
+}
+
 export function CertConstellation({ className }: Props) {
   const nodes = useMemo(() => layoutCerts(), []);
   const stars = useMemo(() => backgroundStars(60), []);
   const reduce = useReducedMotion();
+  const labelOffsets = useMemo(() => {
+    const offsets = new Map<string, { x: number; y: number }>();
+    for (const node of nodes) offsets.set(node.id, labelRepelOffset(node, nodes));
+    return offsets;
+  }, [nodes]);
 
   const byId = useMemo(() => {
     const m = new Map<string, Positioned>();
@@ -326,6 +370,7 @@ export function CertConstellation({ className }: Props) {
                 const dim = effectiveFamily !== null && !famActive;
                 const baseSize = 90;
                 const half = baseSize / 2;
+                const offset = labelOffsets.get(n.id) ?? { x: 0, y: 0 };
                 const driftX = (n.driftSeed % 7) - 3;
                 const driftY = ((n.driftSeed * 1.7) % 7) - 3;
                 const driftDur = 6 + (n.driftSeed % 5);
@@ -345,8 +390,8 @@ export function CertConstellation({ className }: Props) {
                 return (
                   <g key={`${n.id}-label`} transform={`translate(${n.x} ${n.y})`}>
                     <motion.text
-                      x={0}
-                      y={half + 22}
+                      x={offset.x}
+                      y={half + 22 + offset.y}
                       textAnchor="middle"
                       fontSize="10"
                       fill="var(--constellation-label)"
