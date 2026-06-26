@@ -28,6 +28,7 @@ export function CertConstellation({ className }: Props) {
 
   const [hoverId, setHoverId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [showPopupBadge, setShowPopupBadge] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 800, h: 600 });
 
@@ -53,6 +54,19 @@ export function CertConstellation({ className }: Props) {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [selectedId]);
+
+  useEffect(() => {
+    setShowPopupBadge(false);
+    if (!selectedId) return;
+
+    if (reduce) {
+      setShowPopupBadge(true);
+      return;
+    }
+
+    const timer = window.setTimeout(() => setShowPopupBadge(true), 860);
+    return () => window.clearTimeout(timer);
+  }, [reduce, selectedId]);
 
   const hovered = hoverId && !selectedId ? byId.get(hoverId) ?? null : null;
   const selected = selectedId ? byId.get(selectedId) ?? null : null;
@@ -104,7 +118,9 @@ export function CertConstellation({ className }: Props) {
           animate={{ viewBox: cameraViewBox }}
           transition={{ duration: reduce ? 0 : 1, ease: [0.16, 1, 0.3, 1] }}
           preserveAspectRatio="xMidYMid meet"
-          className={`absolute inset-0 h-full w-full ${selected ? "pointer-events-none z-30" : "z-0"}`}
+          className={`absolute inset-0 h-full w-full ${
+            selected ? (showPopupBadge ? "pointer-events-none z-10" : "pointer-events-none z-30") : "z-0"
+          }`}
         >
           <defs>
           </defs>
@@ -242,7 +258,7 @@ export function CertConstellation({ className }: Props) {
                 const driftY = ((n.driftSeed * 1.7) % 7) - 3;
                 const driftDur = 6 + (n.driftSeed % 5);
                 const icon = n.icon ?? CERT_ICONS[n.id];
-                const selectedOpacity = isSelected ? 0.18 : dim ? 0.08 : 0.18;
+                const selectedOpacity = isSelected ? (showPopupBadge ? 0 : 1) : dim ? 0.08 : 0.18;
                 const nodeAnim = selected
                   ? { x: 0, y: 0, scale: isSelected ? 1.08 : 0.82, opacity: selectedOpacity }
                   : reduce
@@ -268,7 +284,7 @@ export function CertConstellation({ className }: Props) {
                       reduce
                         ? undefined
                         : selected
-                          ? { duration: 0.75, ease: [0.16, 1, 0.3, 1] }
+                          ? { duration: isSelected && showPopupBadge ? 0.18 : 0.75, ease: [0.16, 1, 0.3, 1] }
                           : {
                               duration: isHovered ? 0.2 : driftDur,
                               repeat: isHovered ? 0 : Infinity,
@@ -448,29 +464,33 @@ export function CertConstellation({ className }: Props) {
                   exit={reduce ? { opacity: 0 } : { opacity: 0, y: 12 }}
                   transition={{ duration: reduce ? 0 : 0.45, delay: reduce ? 0 : 0.72, ease: "easeOut" }}
                 >
-                  <motion.div
-                    className="mx-auto mb-5 grid size-28 place-items-center md:size-32"
-                    initial={reduce ? { opacity: 0 } : { opacity: 0, y: -54, scale: 1.22, rotate: -2 }}
-                    animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1, rotate: 0 }}
-                    exit={reduce ? { opacity: 0 } : { opacity: 0, y: -20, scale: 0.92 }}
-                    transition={
-                      reduce
-                        ? { duration: 0 }
-                        : {
-                            type: "spring",
-                            stiffness: 620,
-                            damping: 24,
-                            mass: 0.7,
-                            delay: 0.48,
-                          }
-                    }
-                  >
-                    <img
-                      src={selected.icon ?? CERT_ICONS[selected.id]}
-                      alt={`${selected.name} badge`}
-                      className="h-full w-full object-contain drop-shadow-2xl"
-                    />
-                  </motion.div>
+                  <AnimatePresence mode="wait">
+                    {showPopupBadge && (
+                      <motion.div
+                        key={selected.id}
+                        className="mx-auto mb-5 grid size-28 place-items-center md:size-32"
+                        initial={reduce ? { opacity: 0 } : { opacity: 0, y: -54, scale: 1.18, rotate: -2 }}
+                        animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1, rotate: 0 }}
+                        exit={reduce ? { opacity: 0 } : { opacity: 0, y: -20, scale: 0.92 }}
+                        transition={
+                          reduce
+                            ? { duration: 0 }
+                            : {
+                                type: "spring",
+                                stiffness: 680,
+                                damping: 24,
+                                mass: 0.65,
+                              }
+                        }
+                      >
+                        <img
+                          src={selected.icon ?? CERT_ICONS[selected.id]}
+                          alt={`${selected.name} badge`}
+                          className="h-full w-full object-contain drop-shadow-2xl"
+                        />
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
                   <div className="pr-10">
                     <div
