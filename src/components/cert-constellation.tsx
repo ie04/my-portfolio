@@ -104,7 +104,7 @@ export function CertConstellation({ className }: Props) {
           animate={{ viewBox: cameraViewBox }}
           transition={{ duration: reduce ? 0 : 1, ease: [0.16, 1, 0.3, 1] }}
           preserveAspectRatio="xMidYMid meet"
-          className="absolute inset-0 h-full w-full"
+          className={`absolute inset-0 h-full w-full ${selected ? "pointer-events-none z-30" : "z-0"}`}
         >
           <defs>
           </defs>
@@ -381,7 +381,7 @@ export function CertConstellation({ className }: Props) {
         <AnimatePresence>
           {selected && (
             <motion.div
-              className="fixed inset-0 z-50 grid place-items-center bg-background/55 px-4 py-8 backdrop-blur-sm"
+              className="absolute inset-0 z-20 grid place-items-center px-4 py-5"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -389,41 +389,66 @@ export function CertConstellation({ className }: Props) {
               onClick={() => setSelectedId(null)}
             >
               <motion.div
+                className="absolute inset-0 bg-background/45 backdrop-blur-[2px]"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: reduce ? 0 : 0.45 }}
+              />
+              <motion.div
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="cert-dialog-title"
-                className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-border bg-card/95 p-6 text-card-foreground shadow-2xl"
-                initial={reduce ? { opacity: 0 } : { opacity: 0, y: 34, scale: 0.9 }}
-                animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
-                exit={reduce ? { opacity: 0 } : { opacity: 0, y: 18, scale: 0.96 }}
-                transition={{ duration: reduce ? 0 : 0.55, delay: reduce ? 0 : 0.3, ease: [0.16, 1, 0.3, 1] }}
+                className="relative max-h-full w-full max-w-lg overflow-hidden rounded-2xl text-card-foreground shadow-2xl"
+                initial={
+                  reduce
+                    ? { opacity: 0 }
+                    : {
+                        opacity: 0,
+                        clipPath: "inset(48% 48% 48% 48% round 18px)",
+                      }
+                }
+                animate={
+                  reduce
+                    ? { opacity: 1 }
+                    : {
+                        opacity: 1,
+                        clipPath: "inset(0% 0% 0% 0% round 18px)",
+                      }
+                }
+                exit={
+                  reduce
+                    ? { opacity: 0 }
+                    : {
+                        opacity: 0,
+                        clipPath: "inset(48% 48% 48% 48% round 18px)",
+                      }
+                }
+                transition={{ duration: reduce ? 0 : 0.62, delay: reduce ? 0 : 0.34, ease: [0.16, 1, 0.3, 1] }}
                 onClick={(event) => event.stopPropagation()}
               >
+                <div className="absolute inset-0 rounded-2xl border border-border bg-card/95" />
+                <div
+                  className="absolute inset-x-0 top-0 h-px origin-left"
+                  style={{ background: FAMILY_META[selected.family].colorVar }}
+                />
                 <button
                   type="button"
                   aria-label="Close certification details"
-                  className="absolute right-4 top-4 grid size-8 place-items-center rounded-full border border-border bg-background/70 text-muted-foreground transition hover:bg-primary/10 hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  className="absolute right-4 top-4 z-50 grid size-8 place-items-center rounded-full border border-border bg-background/70 text-muted-foreground transition hover:bg-primary/10 hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                   onClick={() => setSelectedId(null)}
                 >
                   ×
                 </button>
 
-                <div className="flex items-start gap-5 pr-10">
-                  <motion.div
-                    className="grid size-24 shrink-0 place-items-center"
-                    layoutId={`cert-${selected.id}`}
-                    initial={reduce ? false : { y: -12, scale: 0.72 }}
-                    animate={reduce ? undefined : { y: 0, scale: 1 }}
-                    transition={{ duration: reduce ? 0 : 0.65, delay: reduce ? 0 : 0.28, ease: [0.16, 1, 0.3, 1] }}
-                  >
-                    <img
-                      src={selected.icon ?? CERT_ICONS[selected.id]}
-                      alt={`${selected.name} badge`}
-                      className="h-full w-full object-contain"
-                    />
-                  </motion.div>
-
-                  <div className="min-w-0">
+                <motion.div
+                  className="relative z-40 px-6 pb-6 pt-48 md:pt-52"
+                  initial={reduce ? { opacity: 0 } : { opacity: 0, y: 18 }}
+                  animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0 }}
+                  exit={reduce ? { opacity: 0 } : { opacity: 0, y: 12 }}
+                  transition={{ duration: reduce ? 0 : 0.45, delay: reduce ? 0 : 0.72, ease: "easeOut" }}
+                >
+                  <div className="pr-10">
                     <div
                       className="mb-2 inline-flex rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-wider"
                       style={{
@@ -438,29 +463,29 @@ export function CertConstellation({ className }: Props) {
                     </h3>
                     <p className="mt-1 text-sm text-muted-foreground">{selected.issuer}</p>
                   </div>
-                </div>
 
-                <div className="mt-6 space-y-4">
-                  <p className="text-sm leading-6 text-muted-foreground">{selected.description}</p>
+                  <div className="mt-6 space-y-4">
+                    <p className="text-sm leading-6 text-muted-foreground">{selected.description}</p>
 
-                  <div className="rounded-xl border border-border bg-background/45 px-4 py-3">
-                    <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                      Awarded
+                    <div className="rounded-xl border border-border bg-background/45 px-4 py-3">
+                      <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                        Awarded
+                      </div>
+                      <div className="mt-1 text-sm text-foreground">{selected.awarded}</div>
                     </div>
-                    <div className="mt-1 text-sm text-foreground">{selected.awarded}</div>
-                  </div>
 
-                  {selected.verifyUrl && (
-                    <a
-                      href={selected.verifyUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex text-sm font-medium text-primary underline-offset-4 transition hover:text-foreground hover:underline"
-                    >
-                      Click Here to Verify
-                    </a>
-                  )}
-                </div>
+                    {selected.verifyUrl && (
+                      <a
+                        href={selected.verifyUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex text-sm font-medium text-primary underline-offset-4 transition hover:text-foreground hover:underline"
+                      >
+                        Click Here to Verify
+                      </a>
+                    )}
+                  </div>
+                </motion.div>
               </motion.div>
             </motion.div>
           )}
