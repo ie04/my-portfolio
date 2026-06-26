@@ -132,7 +132,7 @@ export function CertConstellation({ className }: Props) {
       })()
     : null;
   const cameraViewBox = selected
-    ? `${selected.x - 180} ${selected.y - 76} 360 270`
+    ? `${selected.x - 180} ${selected.y - 98} 360 270`
     : "0 0 800 600";
 
   return (
@@ -525,7 +525,7 @@ export function CertConstellation({ className }: Props) {
                 </button>
 
                 <motion.div
-                  className="relative z-40 px-6 pb-6 pt-44 md:pt-48"
+                  className="relative z-40 px-6 pb-6 pt-52 md:pt-56"
                   initial={reduce ? { opacity: 0 } : { opacity: 1 }}
                   animate={{ opacity: 1 }}
                   exit={reduce ? { opacity: 0 } : { opacity: 0 }}
