@@ -242,7 +242,7 @@ export function CertConstellation({ className }: Props) {
                 const driftY = ((n.driftSeed * 1.7) % 7) - 3;
                 const driftDur = 6 + (n.driftSeed % 5);
                 const icon = n.icon ?? CERT_ICONS[n.id];
-                const selectedOpacity = isSelected ? 1 : dim ? 0.08 : 0.18;
+                const selectedOpacity = isSelected ? 0.18 : dim ? 0.08 : 0.18;
                 const nodeAnim = selected
                   ? { x: 0, y: 0, scale: isSelected ? 1.08 : 0.82, opacity: selectedOpacity }
                   : reduce
@@ -442,12 +442,36 @@ export function CertConstellation({ className }: Props) {
                 </button>
 
                 <motion.div
-                  className="relative z-40 px-6 pb-6 pt-48 md:pt-52"
+                  className="relative z-40 px-6 pb-6 pt-8"
                   initial={reduce ? { opacity: 0 } : { opacity: 0, y: 18 }}
                   animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0 }}
                   exit={reduce ? { opacity: 0 } : { opacity: 0, y: 12 }}
                   transition={{ duration: reduce ? 0 : 0.45, delay: reduce ? 0 : 0.72, ease: "easeOut" }}
                 >
+                  <motion.div
+                    className="mx-auto mb-5 grid size-28 place-items-center md:size-32"
+                    initial={reduce ? { opacity: 0 } : { opacity: 0, y: -54, scale: 1.22, rotate: -2 }}
+                    animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1, rotate: 0 }}
+                    exit={reduce ? { opacity: 0 } : { opacity: 0, y: -20, scale: 0.92 }}
+                    transition={
+                      reduce
+                        ? { duration: 0 }
+                        : {
+                            type: "spring",
+                            stiffness: 620,
+                            damping: 24,
+                            mass: 0.7,
+                            delay: 0.48,
+                          }
+                    }
+                  >
+                    <img
+                      src={selected.icon ?? CERT_ICONS[selected.id]}
+                      alt={`${selected.name} badge`}
+                      className="h-full w-full object-contain drop-shadow-2xl"
+                    />
+                  </motion.div>
+
                   <div className="pr-10">
                     <div
                       className="mb-2 inline-flex rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-wider"
