@@ -24,10 +24,18 @@ import {
   GraduationCap,
   Award,
 } from "lucide-react";
-import { createContext, useContext, useEffect, useMemo, useRef, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+  type ReactNode,
+} from "react";
 import iyadPhoto from "@/assets/iyad.jpeg";
 import awsLogo from "@/assets/logos/aws.svg";
 import { GitHubSection } from "./GitHubSection";
+import { CertConstellation } from "../cert-constellation";
 
 const EMAIL = "iyad@eltifi.com";
 const PHONE_DISPLAY = "(813) 638-6858";
@@ -768,49 +776,76 @@ function Experience() {
   );
 }
 
-function EduCerts() {
+const EDUCATION = [
+  {
+    school: "Western Governors University",
+    program: "B.S., Cloud Computing",
+    when: "Jul 2025 — Jun 2026",
+    location: "Salt Lake City, UT",
+  },
+  {
+    school: "Hillsborough Community College",
+    program: "A.A., Computer Engineering",
+    when: "Aug 2023 — May 2025",
+    location: "Tampa, FL",
+  },
+  {
+    school: "C. Leon King High School",
+    program: "International Baccalaureate Diploma",
+    when: "Aug 2018 — May 2022",
+    location: "Tampa, FL",
+  },
+];
+
+function Education() {
   return (
     <section className="py-24 md:py-32">
       <div className="mx-auto max-w-6xl px-6">
-        <SectionHeading kicker="08 · Education & Certifications" title="Credentials." />
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="glass rounded-2xl p-6">
-            <GraduationCap className="size-5 text-primary" />
-            <h3 className="mt-3 text-lg font-semibold">Education</h3>
-            <ul className="mt-2 space-y-2 text-sm text-muted-foreground">
-              <li>
-                <span className="text-foreground">Western Governors University</span> — B.S., Cloud
-                Computing
-                <span className="block text-xs">Salt Lake City, UT · Jul 2025 — Jun 2026</span>
-              </li>
-              <li>
-                <span className="text-foreground">Hillsborough Community College</span> — A.A.,
-                Computer Engineering
-                <span className="block text-xs">Tampa, FL · Aug 2023 — May 2025</span>
-              </li>
-              <li>
-                <span className="text-foreground">C. Leon King High School</span> — International
-                Baccalaureate Diploma
-                <span className="block text-xs">Tampa, FL · Aug 2018 — May 2022</span>
-              </li>
-            </ul>
-          </div>
-          <div className="glass rounded-2xl p-6">
-            <Award className="size-5 text-primary" />
-            <h3 className="mt-3 text-lg font-semibold">Certifications</h3>
-            <ul className="mt-2 grid grid-cols-1 gap-1.5 text-sm text-muted-foreground sm:grid-cols-2">
-              <li>· AWS Certified Cloud Practitioner</li>
-              <li>· CompTIA A+</li>
-              <li>· CompTIA Network+</li>
-              <li>· CompTIA Security+</li>
-              <li>· CompTIA Cloud+</li>
-              <li>· CompTIA Project+</li>
-              <li>· ITIL IT Service Management</li>
-              <li>· LPI Linux Essentials</li>
-              <li>· Florida State Pharmacy Technician</li>
-            </ul>
+        <SectionHeading kicker="08 · Education" title="Academic foundation." />
+        <div className="relative">
+          <div className="absolute left-3 top-2 bottom-2 w-px bg-gradient-to-b from-primary/60 via-border to-transparent md:left-4" />
+          <div className="space-y-6">
+            {EDUCATION.map((e, i) => (
+              <motion.div
+                key={e.school}
+                initial={{ opacity: 0, x: -16 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true, margin: "-60px" }}
+                transition={{ duration: 0.45, delay: i * 0.08 }}
+                className="relative pl-10 md:pl-14"
+              >
+                <span className="absolute left-1.5 top-3 size-3 rounded-full bg-primary ring-4 ring-primary/20 md:left-2.5" />
+                <div className="glass rounded-2xl p-6">
+                  <div className="flex flex-wrap items-baseline justify-between gap-2">
+                    <h3 className="text-lg font-semibold">
+                      {e.school} <span className="text-muted-foreground">· {e.program}</span>
+                    </h3>
+                    <span className="text-xs text-muted-foreground">{e.when}</span>
+                  </div>
+                  <div className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
+                    <GraduationCap className="size-4 text-primary" />
+                    {e.location}
+                  </div>
+                </div>
+              </motion.div>
+            ))}
           </div>
         </div>
+      </div>
+    </section>
+  );
+}
+
+function Certifications() {
+  return (
+    <section className="py-24 md:py-32">
+      <div className="mx-auto max-w-6xl px-6">
+        <SectionHeading
+          kicker="09 · Verified Certifications"
+          title="Explore my Certifications"
+          sub="Hover to explore, click to verify."
+        />
+        <CertConstellation />
       </div>
     </section>
   );
@@ -862,7 +897,7 @@ function Pricing() {
     <section className="py-24 md:py-32">
       <div className="mx-auto max-w-6xl px-6">
         <SectionHeading
-          kicker="09 · Pricing"
+          kicker="10 · Pricing"
           title="Transparent pricing — no agency markup."
           sub="Pick a build, then add ongoing care if you want me to keep it healthy. Custom scopes welcome."
         />
@@ -998,7 +1033,8 @@ export function Portfolio() {
         <WhyMe />
         <Skills />
         <Experience />
-        <EduCerts />
+        <Education />
+        <Certifications />
         <Pricing />
         <FinalCTA />
       </main>

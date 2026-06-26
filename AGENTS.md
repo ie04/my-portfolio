@@ -14,3 +14,5 @@ This is a Next.js + React portfolio site.
 
 - Do not rewrite published history unless explicitly requested.
 - Keep commits focused and leave unrelated work untouched.
+- Commit and push completed changes unless explicitly told not to.
+- Update this file when new persistent project rules, features, or specifications are introduced.
