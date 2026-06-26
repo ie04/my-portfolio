@@ -300,7 +300,7 @@ export function CertConstellation({ className }: Props) {
                         opacity={0.04}
                         animate={
                           selected
-                            ? { opacity: isSelected ? 0.12 : 0.015, scale: isSelected ? 1.35 : 0.9 }
+                            ? { opacity: 0, scale: 1 }
                             : { opacity: [0.025, 0.07, 0.025], scale: [1, 1.08, 1] }
                         }
                         transition={
@@ -427,7 +427,7 @@ export function CertConstellation({ className }: Props) {
                 transition={{ duration: reduce ? 0 : 0.62, delay: reduce ? 0 : 0.58, ease: [0.16, 1, 0.3, 1] }}
                 onClick={(event) => event.stopPropagation()}
               >
-                <div className="absolute inset-0 rounded-2xl border border-border bg-card/95" />
+                <div className="absolute inset-0 rounded-2xl border border-border bg-card" />
                 <div
                   className="absolute inset-x-0 top-0 h-px origin-left"
                   style={{ background: FAMILY_META[selected.family].colorVar }}
@@ -435,7 +435,7 @@ export function CertConstellation({ className }: Props) {
                 <button
                   type="button"
                   aria-label="Close certification details"
-                  className="absolute right-4 top-4 z-50 grid size-8 place-items-center rounded-full border border-border bg-background/70 text-muted-foreground transition hover:bg-primary/10 hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  className="absolute right-4 top-4 z-50 grid size-8 place-items-center rounded-full border border-border bg-background text-muted-foreground transition hover:bg-primary/10 hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                   onClick={() => setSelectedId(null)}
                 >
                   ×
@@ -473,7 +473,7 @@ export function CertConstellation({ className }: Props) {
                     <div className="mt-6 space-y-4">
                       <p className="text-sm leading-6 text-muted-foreground">{selected.description}</p>
 
-                      <div className="rounded-xl border border-border bg-background/45 px-4 py-3">
+                      <div className="rounded-xl border border-border bg-background px-4 py-3">
                         <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                           Awarded
                         </div>
