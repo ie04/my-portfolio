@@ -258,6 +258,7 @@ export function CertConstellation({ className }: Props) {
                 return (
                   <motion.g
                     key={n.id}
+                    transform={`translate(${n.x} ${n.y})`}
                     style={{
                       cursor: "pointer",
                       outline: "none",
@@ -303,8 +304,8 @@ export function CertConstellation({ className }: Props) {
                     {/* Ambient halo */}
                     {!reduce && (
                       <motion.circle
-                        cx={n.x}
-                        cy={n.y}
+                        cx={0}
+                        cy={0}
                         r={half * 1.25}
                         fill={color}
                         opacity={0.04}
@@ -318,15 +319,15 @@ export function CertConstellation({ className }: Props) {
                             ? { duration: 0.7, ease: "easeOut" }
                             : { duration: 4 + (n.driftSeed % 3), repeat: Infinity, ease: "easeInOut" }
                         }
-                        style={{ transformOrigin: `${n.x}px ${n.y}px` }}
+                        style={{ transformOrigin: "0px 0px" }}
                       />
                     )}
                     {/* The cert icon image */}
                     {icon && (
                       <image
                         href={icon}
-                        x={n.x - half}
-                        y={n.y - half}
+                        x={-half}
+                        y={-half}
                         width={size}
                         height={size}
                         preserveAspectRatio="xMidYMid meet"
@@ -335,8 +336,8 @@ export function CertConstellation({ className }: Props) {
                     )}
                     {/* Short label */}
                     <text
-                      x={n.x}
-                      y={n.y + half + 18}
+                      x={0}
+                      y={half + 22}
                       textAnchor="middle"
                       fontSize="10"
                       fill="var(--constellation-label)"
