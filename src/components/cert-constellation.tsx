@@ -28,7 +28,6 @@ export function CertConstellation({ className }: Props) {
 
   const [hoverId, setHoverId] = useState<string | null>(null);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [showPopupBadge, setShowPopupBadge] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const [size, setSize] = useState({ w: 800, h: 600 });
 
@@ -54,19 +53,6 @@ export function CertConstellation({ className }: Props) {
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [selectedId]);
-
-  useEffect(() => {
-    setShowPopupBadge(false);
-    if (!selectedId) return;
-
-    if (reduce) {
-      setShowPopupBadge(true);
-      return;
-    }
-
-    const timer = window.setTimeout(() => setShowPopupBadge(true), 860);
-    return () => window.clearTimeout(timer);
-  }, [reduce, selectedId]);
 
   const hovered = hoverId && !selectedId ? byId.get(hoverId) ?? null : null;
   const selected = selectedId ? byId.get(selectedId) ?? null : null;
@@ -118,9 +104,7 @@ export function CertConstellation({ className }: Props) {
           animate={{ viewBox: cameraViewBox }}
           transition={{ duration: reduce ? 0 : 1, ease: [0.16, 1, 0.3, 1] }}
           preserveAspectRatio="xMidYMid meet"
-          className={`absolute inset-0 h-full w-full ${
-            selected ? (showPopupBadge ? "pointer-events-none z-10" : "pointer-events-none z-30") : "z-0"
-          }`}
+          className={`absolute inset-0 h-full w-full ${selected ? "pointer-events-none z-10" : "z-0"}`}
         >
           <defs>
           </defs>
@@ -258,7 +242,7 @@ export function CertConstellation({ className }: Props) {
                 const driftY = ((n.driftSeed * 1.7) % 7) - 3;
                 const driftDur = 6 + (n.driftSeed % 5);
                 const icon = n.icon ?? CERT_ICONS[n.id];
-                const selectedOpacity = isSelected ? (showPopupBadge ? 0 : 1) : dim ? 0.08 : 0.18;
+                const selectedOpacity = isSelected ? 0 : dim ? 0.08 : 0.18;
                 const nodeAnim = selected
                   ? { x: 0, y: 0, scale: isSelected ? 1.08 : 0.82, opacity: selectedOpacity }
                   : reduce
@@ -284,7 +268,7 @@ export function CertConstellation({ className }: Props) {
                       reduce
                         ? undefined
                         : selected
-                          ? { duration: isSelected && showPopupBadge ? 0.18 : 0.75, ease: [0.16, 1, 0.3, 1] }
+                          ? { duration: isSelected ? 0.2 : 0.75, ease: [0.16, 1, 0.3, 1] }
                           : {
                               duration: isHovered ? 0.2 : driftDur,
                               repeat: isHovered ? 0 : Infinity,
@@ -459,76 +443,78 @@ export function CertConstellation({ className }: Props) {
 
                 <motion.div
                   className="relative z-40 px-6 pb-6 pt-8"
-                  initial={reduce ? { opacity: 0 } : { opacity: 0, y: 18 }}
-                  animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0 }}
-                  exit={reduce ? { opacity: 0 } : { opacity: 0, y: 12 }}
-                  transition={{ duration: reduce ? 0 : 0.45, delay: reduce ? 0 : 0.72, ease: "easeOut" }}
+                  initial={reduce ? { opacity: 0 } : { opacity: 1 }}
+                  animate={{ opacity: 1 }}
+                  exit={reduce ? { opacity: 0 } : { opacity: 0 }}
+                  transition={{ duration: reduce ? 0 : 0.2 }}
                 >
-                  <AnimatePresence mode="wait">
-                    {showPopupBadge && (
-                      <motion.div
-                        key={selected.id}
-                        className="mx-auto mb-5 grid size-28 place-items-center md:size-32"
-                        initial={reduce ? { opacity: 0 } : { opacity: 0, y: -54, scale: 1.18, rotate: -2 }}
-                        animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1, rotate: 0 }}
-                        exit={reduce ? { opacity: 0 } : { opacity: 0, y: -20, scale: 0.92 }}
-                        transition={
-                          reduce
-                            ? { duration: 0 }
-                            : {
-                                type: "spring",
-                                stiffness: 680,
-                                damping: 24,
-                                mass: 0.65,
-                              }
-                        }
+                  <motion.div
+                    key={selected.id}
+                    className="mx-auto mb-5 grid size-28 place-items-center md:size-32"
+                    initial={reduce ? { opacity: 1 } : { opacity: 1, y: 118, scale: 1.55, rotate: 0 }}
+                    animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1, rotate: 0 }}
+                    exit={reduce ? { opacity: 0 } : { opacity: 0, y: 28, scale: 0.92 }}
+                    transition={
+                      reduce
+                        ? { duration: 0 }
+                        : {
+                            duration: 0.72,
+                            delay: 0.36,
+                            ease: [0.16, 1, 0.3, 1],
+                          }
+                    }
+                  >
+                    <img
+                      src={selected.icon ?? CERT_ICONS[selected.id]}
+                      alt={`${selected.name} badge`}
+                      className="h-full w-full object-contain drop-shadow-2xl"
+                    />
+                  </motion.div>
+
+                  <motion.div
+                    initial={reduce ? { opacity: 0 } : { opacity: 0, y: 16 }}
+                    animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0 }}
+                    exit={reduce ? { opacity: 0 } : { opacity: 0, y: 10 }}
+                    transition={{ duration: reduce ? 0 : 0.38, delay: reduce ? 0 : 0.9, ease: "easeOut" }}
+                  >
+                    <div className="pr-10">
+                      <div
+                        className="mb-2 inline-flex rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-wider"
+                        style={{
+                          background: FAMILY_META[selected.family].colorVar,
+                          color: "var(--constellation-bg)",
+                        }}
                       >
-                        <img
-                          src={selected.icon ?? CERT_ICONS[selected.id]}
-                          alt={`${selected.name} badge`}
-                          className="h-full w-full object-contain drop-shadow-2xl"
-                        />
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-
-                  <div className="pr-10">
-                    <div
-                      className="mb-2 inline-flex rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-wider"
-                      style={{
-                        background: FAMILY_META[selected.family].colorVar,
-                        color: "var(--constellation-bg)",
-                      }}
-                    >
-                      {FAMILY_META[selected.family].label}
-                    </div>
-                    <h3 id="cert-dialog-title" className="text-xl font-semibold leading-tight">
-                      {selected.name}
-                    </h3>
-                    <p className="mt-1 text-sm text-muted-foreground">{selected.issuer}</p>
-                  </div>
-
-                  <div className="mt-6 space-y-4">
-                    <p className="text-sm leading-6 text-muted-foreground">{selected.description}</p>
-
-                    <div className="rounded-xl border border-border bg-background/45 px-4 py-3">
-                      <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-                        Awarded
+                        {FAMILY_META[selected.family].label}
                       </div>
-                      <div className="mt-1 text-sm text-foreground">{selected.awarded}</div>
+                      <h3 id="cert-dialog-title" className="text-xl font-semibold leading-tight">
+                        {selected.name}
+                      </h3>
+                      <p className="mt-1 text-sm text-muted-foreground">{selected.issuer}</p>
                     </div>
 
-                    {selected.verifyUrl && (
-                      <a
-                        href={selected.verifyUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="inline-flex text-sm font-medium text-primary underline-offset-4 transition hover:text-foreground hover:underline"
-                      >
-                        Click Here to Verify
-                      </a>
-                    )}
-                  </div>
+                    <div className="mt-6 space-y-4">
+                      <p className="text-sm leading-6 text-muted-foreground">{selected.description}</p>
+
+                      <div className="rounded-xl border border-border bg-background/45 px-4 py-3">
+                        <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                          Awarded
+                        </div>
+                        <div className="mt-1 text-sm text-foreground">{selected.awarded}</div>
+                      </div>
+
+                      {selected.verifyUrl && (
+                        <a
+                          href={selected.verifyUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex text-sm font-medium text-primary underline-offset-4 transition hover:text-foreground hover:underline"
+                        >
+                          Click Here to Verify
+                        </a>
+                      )}
+                    </div>
+                  </motion.div>
                 </motion.div>
               </motion.div>
             </motion.div>
