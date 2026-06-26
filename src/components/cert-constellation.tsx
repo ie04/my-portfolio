@@ -440,10 +440,6 @@ export function CertConstellation({ className }: Props) {
                 transition={{ duration: reduce ? 0 : 0.62, delay: reduce ? 0 : 0.58, ease: [0.16, 1, 0.3, 1] }}
                 onClick={(event) => event.stopPropagation()}
               >
-                <div
-                  className="absolute inset-x-0 top-0 h-px origin-left"
-                  style={{ background: FAMILY_META[selected.family].colorVar }}
-                />
                 <button
                   type="button"
                   aria-label="Close certification details"
@@ -467,13 +463,7 @@ export function CertConstellation({ className }: Props) {
                     transition={{ duration: reduce ? 0 : 0.38, delay: reduce ? 0 : 1.02, ease: "easeOut" }}
                   >
                     <div className="pr-10">
-                      <div
-                        className="mb-2 inline-flex rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-wider"
-                        style={{
-                          background: FAMILY_META[selected.family].colorVar,
-                          color: "var(--constellation-bg)",
-                        }}
-                      >
+                      <div className="mb-2 inline-flex rounded-full border border-white/10 bg-background/70 px-2 py-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground backdrop-blur">
                         {FAMILY_META[selected.family].label}
                       </div>
                       <h3 id="cert-dialog-title" className="text-xl font-semibold leading-tight">
