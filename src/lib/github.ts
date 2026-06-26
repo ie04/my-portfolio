@@ -180,6 +180,32 @@ async function gh<T>(url: string, token: string): Promise<T> {
   return (await res.json()) as T;
 }
 
+async function ghPages<T>(url: string, token: string): Promise<T[]> {
+  const items: T[] = [];
+  let nextUrl: string | null = url;
+
+  while (nextUrl) {
+    const pageUrl = nextUrl;
+    const res: Response = await fetch(pageUrl, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+        "User-Agent": "iyad-portfolio",
+      },
+    });
+    if (!res.ok) {
+      throw new Error(`GitHub ${res.status}: ${await res.text()}`);
+    }
+
+    items.push(...((await res.json()) as T[]));
+    const link = res.headers.get("link");
+    nextUrl = link?.match(/<([^>]+)>;\s*rel="next"/)?.[1] ?? null;
+  }
+
+  return items;
+}
+
 function buildSummary(profile: GitHubProfile, repos: Repo[]): GitHubData["summary"] {
   const publicRepos = repos.filter((r) => !r.isPrivate).length;
   const privateRepos = repos.filter((r) => r.isPrivate).length;
@@ -295,8 +321,8 @@ export async function getGitHubData(): Promise<GitHubData> {
   try {
     const [profileRaw, reposRaw] = await Promise.all([
       gh<GitHubProfileResponse>("https://api.github.com/user", token),
-      gh<GitHubRepoResponse[]>(
-        "https://api.github.com/user/repos?affiliation=owner&visibility=all&sort=updated&per_page=100",
+      ghPages<GitHubRepoResponse>(
+        "https://api.github.com/user/repos?affiliation=owner,collaborator,organization_member&visibility=all&sort=updated&per_page=100",
         token,
       ),
     ]);
