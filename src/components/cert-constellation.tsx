@@ -399,7 +399,7 @@ export function CertConstellation({ className }: Props) {
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby="cert-dialog-title"
-                className="relative max-h-full w-full max-w-lg overflow-hidden rounded-2xl border border-border bg-card text-card-foreground shadow-2xl"
+                className="relative max-h-full w-full max-w-lg overflow-hidden rounded-2xl border border-white/15 bg-card/85 text-card-foreground shadow-2xl shadow-black/45 backdrop-blur-xl"
                 initial={
                   reduce
                     ? { opacity: 0 }
@@ -434,7 +434,7 @@ export function CertConstellation({ className }: Props) {
                 <button
                   type="button"
                   aria-label="Close certification details"
-                  className="absolute right-4 top-4 z-50 grid size-8 place-items-center rounded-full border border-border bg-background text-muted-foreground transition hover:bg-primary/10 hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  className="absolute right-4 top-4 z-50 grid size-8 place-items-center rounded-full border border-white/15 bg-background/85 text-muted-foreground backdrop-blur transition hover:bg-primary/10 hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                   onClick={() => setSelectedId(null)}
                 >
                   ×
@@ -472,7 +472,7 @@ export function CertConstellation({ className }: Props) {
                     <div className="mt-6 space-y-4">
                       <p className="text-sm leading-6 text-muted-foreground">{selected.description}</p>
 
-                      <div className="rounded-xl border border-border bg-background px-4 py-3">
+                      <div className="rounded-xl border border-white/10 bg-background/70 px-4 py-3 backdrop-blur">
                         <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                           Awarded
                         </div>
