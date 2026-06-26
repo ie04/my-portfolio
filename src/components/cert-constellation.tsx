@@ -88,7 +88,7 @@ export function CertConstellation({ className }: Props) {
       })()
     : null;
   const cameraViewBox = selected
-    ? `${selected.x - 130} ${selected.y - 97.5} 260 195`
+    ? `${selected.x - 180} ${selected.y - 76} 360 270`
     : "0 0 800 600";
 
   return (
@@ -104,7 +104,7 @@ export function CertConstellation({ className }: Props) {
           animate={{ viewBox: cameraViewBox }}
           transition={{ duration: reduce ? 0 : 1, ease: [0.16, 1, 0.3, 1] }}
           preserveAspectRatio="xMidYMid meet"
-          className={`absolute inset-0 h-full w-full ${selected ? "pointer-events-none z-10" : "z-0"}`}
+          className={`absolute inset-0 h-full w-full ${selected ? "pointer-events-none z-30" : "z-0"}`}
         >
           <defs>
           </defs>
@@ -242,9 +242,9 @@ export function CertConstellation({ className }: Props) {
                 const driftY = ((n.driftSeed * 1.7) % 7) - 3;
                 const driftDur = 6 + (n.driftSeed % 5);
                 const icon = n.icon ?? CERT_ICONS[n.id];
-                const selectedOpacity = isSelected ? 0 : dim ? 0.08 : 0.18;
+                const selectedOpacity = isSelected ? 1 : 0;
                 const nodeAnim = selected
-                  ? { x: 0, y: 0, scale: isSelected ? 1.08 : 0.82, opacity: selectedOpacity }
+                  ? { x: 0, y: 0, scale: isSelected ? 0.72 : 0.82, opacity: selectedOpacity }
                   : reduce
                     ? { x: 0, y: 0, scale: 1, opacity: dim ? 0.35 : 1 }
                     : {
@@ -268,7 +268,7 @@ export function CertConstellation({ className }: Props) {
                       reduce
                         ? undefined
                         : selected
-                          ? { duration: isSelected ? 0.2 : 0.75, ease: [0.16, 1, 0.3, 1] }
+                          ? { duration: 0.75, ease: [0.16, 1, 0.3, 1] }
                           : {
                               duration: isHovered ? 0.2 : driftDur,
                               repeat: isHovered ? 0 : Infinity,
@@ -424,7 +424,7 @@ export function CertConstellation({ className }: Props) {
                         clipPath: "inset(48% 48% 48% 48% round 18px)",
                       }
                 }
-                transition={{ duration: reduce ? 0 : 0.62, delay: reduce ? 0 : 0.34, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: reduce ? 0 : 0.62, delay: reduce ? 0 : 0.58, ease: [0.16, 1, 0.3, 1] }}
                 onClick={(event) => event.stopPropagation()}
               >
                 <div className="absolute inset-0 rounded-2xl border border-border bg-card/95" />
@@ -442,40 +442,17 @@ export function CertConstellation({ className }: Props) {
                 </button>
 
                 <motion.div
-                  className="relative z-40 px-6 pb-6 pt-8"
+                  className="relative z-40 px-6 pb-6 pt-44 md:pt-48"
                   initial={reduce ? { opacity: 0 } : { opacity: 1 }}
                   animate={{ opacity: 1 }}
                   exit={reduce ? { opacity: 0 } : { opacity: 0 }}
                   transition={{ duration: reduce ? 0 : 0.2 }}
                 >
                   <motion.div
-                    key={selected.id}
-                    className="mx-auto mb-5 grid size-28 place-items-center md:size-32"
-                    initial={reduce ? { opacity: 1 } : { opacity: 1, y: 118, scale: 1.55, rotate: 0 }}
-                    animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1, rotate: 0 }}
-                    exit={reduce ? { opacity: 0 } : { opacity: 0, y: 28, scale: 0.92 }}
-                    transition={
-                      reduce
-                        ? { duration: 0 }
-                        : {
-                            duration: 0.72,
-                            delay: 0.36,
-                            ease: [0.16, 1, 0.3, 1],
-                          }
-                    }
-                  >
-                    <img
-                      src={selected.icon ?? CERT_ICONS[selected.id]}
-                      alt={`${selected.name} badge`}
-                      className="h-full w-full object-contain drop-shadow-2xl"
-                    />
-                  </motion.div>
-
-                  <motion.div
                     initial={reduce ? { opacity: 0 } : { opacity: 0, y: 16 }}
                     animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0 }}
                     exit={reduce ? { opacity: 0 } : { opacity: 0, y: 10 }}
-                    transition={{ duration: reduce ? 0 : 0.38, delay: reduce ? 0 : 0.9, ease: "easeOut" }}
+                    transition={{ duration: reduce ? 0 : 0.38, delay: reduce ? 0 : 1.02, ease: "easeOut" }}
                   >
                     <div className="pr-10">
                       <div
