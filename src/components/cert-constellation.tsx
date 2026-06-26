@@ -87,6 +87,14 @@ export function CertConstellation({ className }: Props) {
         return { x: px, y: py, cert: hovered };
       })()
     : null;
+  const sceneScale = selected && !reduce ? 3.15 : 1;
+  const sceneTransform = selected
+    ? {
+        x: 400 - selected.x * sceneScale,
+        y: 300 - selected.y * sceneScale,
+        scale: sceneScale,
+      }
+    : { x: 0, y: 0, scale: 1 };
 
   return (
     <div className={className}>
@@ -104,222 +112,241 @@ export function CertConstellation({ className }: Props) {
           <defs>
           </defs>
 
-          {/* Background stars */}
-          <g>
-            {stars.map((s, i) =>
-              reduce ? (
-                <circle key={i} cx={s.x} cy={s.y} r={s.r} fill="var(--constellation-star)" opacity={s.o} />
-              ) : (
-                <motion.circle
-                  key={i}
-                  cx={s.x}
-                  cy={s.y}
-                  r={s.r}
-                  fill="var(--constellation-star)"
-                  initial={{ opacity: s.o }}
-                  animate={{ opacity: [s.o, s.o * 0.3, s.o] }}
-                  transition={{ duration: 3 + s.t, repeat: Infinity, ease: "easeInOut", delay: s.t }}
-                />
-              )
-            )}
-          </g>
-
-          {/* Cross-family edges */}
-          <g>
-            {crossEdges.map((e) => {
-              const dim = effectiveFamily !== null;
-              return (
-                <line
-                  key={e.id}
-                  x1={e.x1}
-                  y1={e.y1}
-                  x2={e.x2}
-                  y2={e.y2}
-                  stroke="var(--constellation-edge)"
-                  strokeWidth={0.6}
-                  strokeDasharray="3 6"
-                  opacity={dim ? 0.15 : 0.35}
-                  style={{ transition: "opacity 300ms" }}
-                />
-              );
-            })}
-          </g>
-
-          {/* Intra-family edges */}
-          <g>
-            {intraEdges.map((e) => {
-              const active = effectiveFamily === e.family;
-              const dim = effectiveFamily !== null && !active;
-              return (
-                <line
-                  key={e.id}
-                  x1={e.x1}
-                  y1={e.y1}
-                  x2={e.x2}
-                  y2={e.y2}
-                  stroke={active ? FAMILY_META[e.family].colorVar : "var(--constellation-edge)"}
-                  strokeWidth={active ? 1.4 : 0.9}
-                  opacity={dim ? 0.18 : active ? 0.9 : 0.55}
-                  style={{ transition: "opacity 300ms, stroke-width 300ms" }}
-                />
-              );
-            })}
-          </g>
-
-          {/* Family anchor pulse */}
-          <g>
-            {(Object.keys(FAMILY_META) as CertFamily[]).map((fam) => {
-              const a = FAMILY_META[fam].anchor;
-              const active = effectiveFamily === fam;
-              return (
-                <circle
-                  key={fam}
-                  cx={a.x}
-                  cy={a.y}
-                  r={active ? 4 : 2.4}
-                  fill={FAMILY_META[fam].colorVar}
-                  opacity={active ? 0.8 : 0.35}
-                  style={{ transition: "all 300ms" }}
-                />
-              );
-            })}
-          </g>
-
-          {/* Family group labels (for multi-member families) */}
-          <g>
-            {(Object.keys(FAMILY_META) as CertFamily[]).map((fam) => {
-              const members = CERTS.filter((c) => c.family === fam);
-              if (members.length < 2) return null;
-              const famNodes = nodes.filter((n) => n.family === fam);
-              const maxY = famNodes.reduce((acc, n) => Math.max(acc, n.y), -Infinity);
-              const a = FAMILY_META[fam].anchor;
-              const active = effectiveFamily === fam;
-              const dim = effectiveFamily !== null && !active;
-              return (
-                <text
-                  key={`fam-${fam}`}
-                  x={a.x}
-                  y={maxY + 115}
-                  textAnchor="middle"
-                  fontSize="14"
-                  fill={FAMILY_META[fam].colorVar}
-                  opacity={dim ? 0.35 : active ? 1 : 0.85}
-                  style={{
-                    pointerEvents: "none",
-                    fontWeight: 600,
-                    letterSpacing: "0.04em",
-                    transition: "opacity 300ms",
-                  }}
-                >
-                  {FAMILY_META[fam].label}
-                </text>
-              );
-            })}
-          </g>
-
-          {/* Nodes */}
-          <g>
-            {nodes.map((n) => {
-              const isHovered = hoverId === n.id && !selected;
-              const isSelected = selectedId === n.id;
-              const famActive = effectiveFamily === n.family;
-              const dim = effectiveFamily !== null && !famActive;
-              const color = FAMILY_META[n.family].colorVar;
-              const baseSize = 90;
-              const size = isHovered ? baseSize * 1.3 : baseSize;
-              const half = size / 2;
-              const driftX = (n.driftSeed % 7) - 3;
-              const driftY = ((n.driftSeed * 1.7) % 7) - 3;
-              const driftDur = 6 + (n.driftSeed % 5);
-              const icon = n.icon ?? CERT_ICONS[n.id];
-              const nodeAnim = isSelected
-                ? { x: 400 - n.x, y: 180 - n.y, scale: 1.22, opacity: 0 }
-                : reduce
-                  ? { x: 0, y: 0, scale: 1, opacity: dim ? 0.35 : 1 }
-                  : {
-                      x: isHovered ? 0 : [0, driftX, 0, -driftX, 0],
-                      y: isHovered ? 0 : [0, driftY, 0, -driftY, 0],
-                      scale: 1,
-                      opacity: dim ? 0.35 : 1,
-                    };
-
-              return (
-                <motion.g
-                  key={n.id}
-                  style={{
-                    cursor: "pointer",
-                    outline: "none",
-                    transformBox: "fill-box",
-                    transformOrigin: "center",
-                  }}
-                  animate={nodeAnim}
-                  transition={
-                    reduce
-                      ? undefined
-                      : isSelected
-                        ? { duration: 0.45, ease: [0.22, 1, 0.36, 1] }
-                        : {
-                            duration: isHovered ? 0.2 : driftDur,
-                            repeat: isHovered ? 0 : Infinity,
-                            ease: "easeInOut",
-                          }
-                  }
-                  onMouseEnter={() => setHoverId(n.id)}
-                  onMouseDown={(event) => event.preventDefault()}
-                  onFocus={() => setHoverId(n.id)}
-                  onBlur={() => setHoverId(null)}
-                  tabIndex={0}
-                  role="button"
-                  aria-label={`Open details for ${n.name} by ${n.issuer}`}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      setSelectedId(n.id);
+          <motion.g
+            animate={sceneTransform}
+            transition={{ duration: reduce ? 0 : 0.95, ease: [0.16, 1, 0.3, 1] }}
+            style={{ transformBox: "view-box", transformOrigin: "0 0" }}
+          >
+            {/* Background stars */}
+            <g>
+              {stars.map((s, i) =>
+                reduce ? (
+                  <circle key={i} cx={s.x} cy={s.y} r={s.r} fill="var(--constellation-star)" opacity={s.o} />
+                ) : (
+                  <motion.circle
+                    key={i}
+                    cx={s.x}
+                    cy={s.y}
+                    r={s.r}
+                    fill="var(--constellation-star)"
+                    initial={{ opacity: s.o }}
+                    animate={{ opacity: selected ? s.o * 0.18 : [s.o, s.o * 0.3, s.o] }}
+                    transition={
+                      selected
+                        ? { duration: 0.7, ease: "easeOut" }
+                        : { duration: 3 + s.t, repeat: Infinity, ease: "easeInOut", delay: s.t }
                     }
-                  }}
-                  onClick={() => setSelectedId(n.id)}
-                >
-                  {/* Ambient halo */}
-                  {!reduce && (
-                    <motion.circle
-                      cx={n.x}
-                      cy={n.y}
-                      r={half * 1.25}
-                      fill={color}
-                      opacity={0.04}
-                      animate={{ opacity: [0.025, 0.07, 0.025], scale: [1, 1.08, 1] }}
-                      transition={{ duration: 4 + (n.driftSeed % 3), repeat: Infinity, ease: "easeInOut" }}
-                      style={{ transformOrigin: `${n.x}px ${n.y}px` }}
-                    />
-                  )}
-                  {/* The cert icon image */}
-                  {icon && (
-                    <image
-                      href={icon}
-                      x={n.x - half}
-                      y={n.y - half}
-                      width={size}
-                      height={size}
-                      preserveAspectRatio="xMidYMid meet"
-                      style={{ transition: "width 300ms, height 300ms, x 300ms, y 300ms" }}
-                    />
-                  )}
-                  {/* Short label */}
+                  />
+                )
+              )}
+            </g>
+
+            {/* Cross-family edges */}
+            <g>
+              {crossEdges.map((e) => {
+                const dim = effectiveFamily !== null;
+                return (
+                  <line
+                    key={e.id}
+                    x1={e.x1}
+                    y1={e.y1}
+                    x2={e.x2}
+                    y2={e.y2}
+                    stroke="var(--constellation-edge)"
+                    strokeWidth={0.6}
+                    strokeDasharray="3 6"
+                    opacity={selected ? 0.08 : dim ? 0.15 : 0.35}
+                    style={{ transition: "opacity 500ms" }}
+                  />
+                );
+              })}
+            </g>
+
+            {/* Intra-family edges */}
+            <g>
+              {intraEdges.map((e) => {
+                const active = effectiveFamily === e.family;
+                const dim = effectiveFamily !== null && !active;
+                return (
+                  <line
+                    key={e.id}
+                    x1={e.x1}
+                    y1={e.y1}
+                    x2={e.x2}
+                    y2={e.y2}
+                    stroke={active ? FAMILY_META[e.family].colorVar : "var(--constellation-edge)"}
+                    strokeWidth={active ? 1.4 : 0.9}
+                    opacity={selected ? (active ? 0.34 : 0.05) : dim ? 0.18 : active ? 0.9 : 0.55}
+                    style={{ transition: "opacity 500ms, stroke-width 300ms" }}
+                  />
+                );
+              })}
+            </g>
+
+            {/* Family anchor pulse */}
+            <g>
+              {(Object.keys(FAMILY_META) as CertFamily[]).map((fam) => {
+                const a = FAMILY_META[fam].anchor;
+                const active = effectiveFamily === fam;
+                return (
+                  <circle
+                    key={fam}
+                    cx={a.x}
+                    cy={a.y}
+                    r={active ? 4 : 2.4}
+                    fill={FAMILY_META[fam].colorVar}
+                    opacity={selected ? (active ? 0.55 : 0.08) : active ? 0.8 : 0.35}
+                    style={{ transition: "all 500ms" }}
+                  />
+                );
+              })}
+            </g>
+
+            {/* Family group labels (for multi-member families) */}
+            <g>
+              {(Object.keys(FAMILY_META) as CertFamily[]).map((fam) => {
+                const members = CERTS.filter((c) => c.family === fam);
+                if (members.length < 2) return null;
+                const famNodes = nodes.filter((n) => n.family === fam);
+                const maxY = famNodes.reduce((acc, n) => Math.max(acc, n.y), -Infinity);
+                const a = FAMILY_META[fam].anchor;
+                const active = effectiveFamily === fam;
+                const dim = effectiveFamily !== null && !active;
+                return (
                   <text
-                    x={n.x}
-                    y={n.y + half + 18}
+                    key={`fam-${fam}`}
+                    x={a.x}
+                    y={maxY + 115}
                     textAnchor="middle"
-                    fontSize="10"
-                    fill="var(--constellation-label)"
-                    opacity={isHovered ? 1 : 0.7}
-                    style={{ pointerEvents: "none", fontWeight: 500, letterSpacing: "0.05em" }}
+                    fontSize="14"
+                    fill={FAMILY_META[fam].colorVar}
+                    opacity={selected ? 0 : dim ? 0.35 : active ? 1 : 0.85}
+                    style={{
+                      pointerEvents: "none",
+                      fontWeight: 600,
+                      letterSpacing: "0.04em",
+                      transition: "opacity 500ms",
+                    }}
                   >
-                    {n.short.toUpperCase()}
+                    {FAMILY_META[fam].label}
                   </text>
-                </motion.g>
-              );
-            })}
-          </g>
+                );
+              })}
+            </g>
+
+            {/* Nodes */}
+            <g>
+              {nodes.map((n) => {
+                const isHovered = hoverId === n.id && !selected;
+                const isSelected = selectedId === n.id;
+                const famActive = effectiveFamily === n.family;
+                const dim = effectiveFamily !== null && !famActive;
+                const color = FAMILY_META[n.family].colorVar;
+                const baseSize = 90;
+                const size = isHovered ? baseSize * 1.3 : baseSize;
+                const half = size / 2;
+                const driftX = (n.driftSeed % 7) - 3;
+                const driftY = ((n.driftSeed * 1.7) % 7) - 3;
+                const driftDur = 6 + (n.driftSeed % 5);
+                const icon = n.icon ?? CERT_ICONS[n.id];
+                const selectedOpacity = isSelected ? 1 : dim ? 0.08 : 0.18;
+                const nodeAnim = selected
+                  ? { x: 0, y: 0, scale: isSelected ? 1.08 : 0.82, opacity: selectedOpacity }
+                  : reduce
+                    ? { x: 0, y: 0, scale: 1, opacity: dim ? 0.35 : 1 }
+                    : {
+                        x: isHovered ? 0 : [0, driftX, 0, -driftX, 0],
+                        y: isHovered ? 0 : [0, driftY, 0, -driftY, 0],
+                        scale: 1,
+                        opacity: dim ? 0.35 : 1,
+                      };
+
+                return (
+                  <motion.g
+                    key={n.id}
+                    style={{
+                      cursor: "pointer",
+                      outline: "none",
+                      transformBox: "fill-box",
+                      transformOrigin: "center",
+                    }}
+                    animate={nodeAnim}
+                    transition={
+                      reduce
+                        ? undefined
+                        : selected
+                          ? { duration: 0.75, ease: [0.16, 1, 0.3, 1] }
+                          : {
+                              duration: isHovered ? 0.2 : driftDur,
+                              repeat: isHovered ? 0 : Infinity,
+                              ease: "easeInOut",
+                            }
+                    }
+                    onMouseEnter={() => setHoverId(n.id)}
+                    onMouseDown={(event) => event.preventDefault()}
+                    onFocus={() => setHoverId(n.id)}
+                    onBlur={() => setHoverId(null)}
+                    tabIndex={0}
+                    role="button"
+                    aria-label={`Open details for ${n.name} by ${n.issuer}`}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        setSelectedId(n.id);
+                      }
+                    }}
+                    onClick={() => setSelectedId(n.id)}
+                  >
+                    {/* Ambient halo */}
+                    {!reduce && (
+                      <motion.circle
+                        cx={n.x}
+                        cy={n.y}
+                        r={half * 1.25}
+                        fill={color}
+                        opacity={0.04}
+                        animate={
+                          selected
+                            ? { opacity: isSelected ? 0.12 : 0.015, scale: isSelected ? 1.35 : 0.9 }
+                            : { opacity: [0.025, 0.07, 0.025], scale: [1, 1.08, 1] }
+                        }
+                        transition={
+                          selected
+                            ? { duration: 0.7, ease: "easeOut" }
+                            : { duration: 4 + (n.driftSeed % 3), repeat: Infinity, ease: "easeInOut" }
+                        }
+                        style={{ transformOrigin: `${n.x}px ${n.y}px` }}
+                      />
+                    )}
+                    {/* The cert icon image */}
+                    {icon && (
+                      <image
+                        href={icon}
+                        x={n.x - half}
+                        y={n.y - half}
+                        width={size}
+                        height={size}
+                        preserveAspectRatio="xMidYMid meet"
+                        style={{ transition: "width 300ms, height 300ms, x 300ms, y 300ms" }}
+                      />
+                    )}
+                    {/* Short label */}
+                    <text
+                      x={n.x}
+                      y={n.y + half + 18}
+                      textAnchor="middle"
+                      fontSize="10"
+                      fill="var(--constellation-label)"
+                      opacity={selected ? 0 : isHovered ? 1 : 0.7}
+                      style={{ pointerEvents: "none", fontWeight: 500, letterSpacing: "0.05em" }}
+                    >
+                      {n.short.toUpperCase()}
+                    </text>
+                  </motion.g>
+                );
+              })}
+            </g>
+          </motion.g>
         </svg>
 
 
@@ -361,10 +388,11 @@ export function CertConstellation({ className }: Props) {
         <AnimatePresence>
           {selected && (
             <motion.div
-              className="fixed inset-0 z-50 grid place-items-center bg-background/70 px-4 py-8 backdrop-blur-md"
+              className="fixed inset-0 z-50 grid place-items-center bg-background/55 px-4 py-8 backdrop-blur-sm"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              transition={{ duration: reduce ? 0 : 0.45, delay: reduce ? 0 : 0.22 }}
               onClick={() => setSelectedId(null)}
             >
               <motion.div
@@ -372,10 +400,10 @@ export function CertConstellation({ className }: Props) {
                 aria-modal="true"
                 aria-labelledby="cert-dialog-title"
                 className="relative w-full max-w-lg overflow-hidden rounded-2xl border border-border bg-card/95 p-6 text-card-foreground shadow-2xl"
-                initial={reduce ? { opacity: 0 } : { opacity: 0, y: 28, scale: 0.94 }}
+                initial={reduce ? { opacity: 0 } : { opacity: 0, y: 34, scale: 0.9 }}
                 animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0, scale: 1 }}
                 exit={reduce ? { opacity: 0 } : { opacity: 0, y: 18, scale: 0.96 }}
-                transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                transition={{ duration: reduce ? 0 : 0.55, delay: reduce ? 0 : 0.3, ease: [0.16, 1, 0.3, 1] }}
                 onClick={(event) => event.stopPropagation()}
               >
                 <button
@@ -391,9 +419,9 @@ export function CertConstellation({ className }: Props) {
                   <motion.div
                     className="grid size-24 shrink-0 place-items-center"
                     layoutId={`cert-${selected.id}`}
-                    initial={reduce ? false : { y: -24, scale: 0.82 }}
+                    initial={reduce ? false : { y: -12, scale: 0.72 }}
                     animate={reduce ? undefined : { y: 0, scale: 1 }}
-                    transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+                    transition={{ duration: reduce ? 0 : 0.65, delay: reduce ? 0 : 0.28, ease: [0.16, 1, 0.3, 1] }}
                   >
                     <img
                       src={selected.icon ?? CERT_ICONS[selected.id]}

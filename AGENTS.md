@@ -9,7 +9,7 @@ This is a Next.js + React portfolio site.
 - Keep visual design, layout, and portfolio content stable unless the requested change explicitly asks for UI or copy changes.
 - Preserve the existing Tailwind utility and component patterns when editing UI.
 - Keep server-only data access inside Next route handlers or server modules.
-- Certification badges should open a themed detail popup with metadata and a low-profile verification link instead of navigating directly.
+- Certification badges should open a themed detail popup with metadata and a low-profile verification link instead of navigating directly; selection should use a smooth camera-style zoom into the constellation rather than a detached-badge flyout.
 
 ## Git
 
